@@ -1,5 +1,6 @@
 import express from "express";
 import { pool } from "../db.js";
+import { sendSuccess, sendError } from "../services/response.js";
 import { randomUUID } from "crypto";
 
 const router = express.Router();
@@ -10,9 +11,9 @@ router.get("/", async (req, res) => {
   try {
     const q = `SELECT id, name, description, is_active, created_at, updated_at FROM category WHERE is_active = true ORDER BY name`;
     const { rows } = await pool.query(q);
-    return res.json({ status: 200, data: rows });
+    return sendSuccess(res, rows);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -21,9 +22,9 @@ adminRouter.get("/", async (req, res) => {
   try {
     const q = `SELECT * FROM category ORDER BY created_at DESC`;
     const { rows } = await pool.query(q);
-    return res.json({ status: 200, data: rows });
+    return sendSuccess(res, rows);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -34,9 +35,9 @@ adminRouter.post("/", async (req, res) => {
     const id = randomUUID();
     const q = `INSERT INTO category(id, name, description, is_active, created_at, updated_at) VALUES($1,$2,$3,COALESCE($4,true),NOW(),NOW()) RETURNING *`;
     const { rows } = await pool.query(q, [id, name, description, is_active]);
-    return res.json({ status: 201, data: rows[0] });
+    return sendSuccess(res, rows[0], 201);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -47,9 +48,9 @@ adminRouter.put("/:id", async (req, res) => {
     const { name, description, is_active } = req.body;
     const q = `UPDATE category SET name=$1, description=$2, is_active=$3, updated_at=NOW() WHERE id=$4 RETURNING *`;
     const { rows } = await pool.query(q, [name, description, is_active, id]);
-    return res.json({ status: 200, data: rows[0] || null });
+    return sendSuccess(res, rows[0] || null);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -59,9 +60,9 @@ adminRouter.delete("/:id", async (req, res) => {
     const { id } = req.params;
     const q = `UPDATE category SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING *`;
     const { rows } = await pool.query(q, [id]);
-    return res.json({ status: 200, data: rows[0] || null });
+    return sendSuccess(res, rows[0] || null);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 

@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { pool } from "../db.js";
+import { sendSuccess, sendError } from "../services/response.js";
 import { uploadFile, deleteFile, getPublicUrl } from "../services/supabase.js";
 import { randomUUID } from "crypto";
 
@@ -13,11 +14,11 @@ adminRouter.post("/:id/image", upload.single("file"), async (req, res) => {
   try {
     const { id } = req.params; // product id
     const file = req.file;
-    if (!file) return res.status(400).json({ status: 400, data: null, message: "file is required" });
+    if (!file) return sendError(res, "file is required", 400);
     
     // Validate product exists
     const productCheck = await pool.query(`SELECT id FROM product WHERE id = $1 LIMIT 1`, [id]);
-    if (!productCheck.rows[0]) return res.status(404).json({ status: 404, data: null, message: "Product not found" });
+    if (!productCheck.rows[0]) return sendError(res, "Product not found", 404);
 
     const filename = `${randomUUID()}_${file.originalname}`;
     const path = `product/${filename}`;
@@ -41,9 +42,9 @@ adminRouter.post("/:id/image", upload.single("file"), async (req, res) => {
     
     const publicUrl = getPublicUrl("content", path);
     const resultData = { ...rows[0], public_url: publicUrl };
-    return res.status(201).json({ status: 201, data: resultData });
+    return sendSuccess(res, resultData, 201);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -53,16 +54,16 @@ adminRouter.delete("/image/:imageId", async (req, res) => {
     const { imageId } = req.params;
     const q = `SELECT image_url FROM product_image WHERE id = $1 LIMIT 1`;
     const { rows } = await pool.query(q, [imageId]);
-    if (!rows[0]) return res.status(404).json({ status: 404, data: null, message: "Not found" });
+    if (!rows[0]) return sendError(res, "Not found", 404);
     const path = rows[0].image_url;
     // delete DB record
     await pool.query(`DELETE FROM product_image WHERE id = $1`, [imageId]);
     if (path) {
       await deleteFile("content", [path]);
     }
-    return res.json({ status: 200, data: { success: true } });
+    return sendSuccess(res, { success: true });
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -73,9 +74,9 @@ adminRouter.put("/image/:imageId/sort", async (req, res) => {
     const { sort_order } = req.body;
     const q = `UPDATE product_image SET sort_order = $1 WHERE id = $2 RETURNING *`;
     const { rows } = await pool.query(q, [sort_order, imageId]);
-    return res.json({ status: 200, data: rows[0] || null });
+    return sendSuccess(res, rows[0] || null);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 

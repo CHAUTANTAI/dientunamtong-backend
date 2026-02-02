@@ -1,5 +1,6 @@
 import express from "express";
 import { pool } from "../db.js";
+import { sendSuccess, sendError } from "../services/response.js";
 import { randomUUID } from "crypto";
 
 const router = express.Router();
@@ -36,9 +37,9 @@ router.get("/", async (req, res) => {
     const finalQ = q + ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     const values = [...params, parseInt(limit, 10), parseInt(offset, 10)];
     const { rows } = await pool.query(finalQ, values);
-    return res.json({ status: 200, data: rows });
+    return sendSuccess(res, rows);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -48,7 +49,7 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
     const q = `SELECT id, name, price, short_description, description, is_active, created_at, updated_at FROM product WHERE id = $1 LIMIT 1`;
     const { rows } = await pool.query(q, [id]);
-    if (!rows[0]) return res.status(404).json({ status: 404, data: null, message: "Not found" });
+    if (!rows[0]) return sendError(res, "Not found", 404);
     const product = rows[0];
     const imgQ = `SELECT id, image_url, sort_order, created_at FROM product_image WHERE product_id = $1 ORDER BY sort_order ASC`;
     const catQ = `SELECT c.id, c.name FROM category c JOIN product_category pc ON pc.category_id = c.id WHERE pc.product_id = $1`;
@@ -56,9 +57,9 @@ router.get("/:id", async (req, res) => {
     const cats = (await pool.query(catQ, [id])).rows;
     product.images = imgs;
     product.categories = cats;
-    return res.json({ status: 200, data: product });
+    return sendSuccess(res, product);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -70,9 +71,9 @@ adminRouter.get("/", async (req, res) => {
     const finalQ = q + ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     const values = [...params, parseInt(limit, 10), parseInt(offset, 10)];
     const { rows } = await pool.query(finalQ, values);
-    return res.json({ status: 200, data: rows });
+    return sendSuccess(res, rows);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -83,9 +84,9 @@ adminRouter.post("/", async (req, res) => {
     const id = randomUUID();
     const q = `INSERT INTO product(id, name, price, short_description, description, is_active, created_at, updated_at) VALUES($1,$2,$3,$4,$5,COALESCE($6,true),NOW(),NOW()) RETURNING *`;
     const { rows } = await pool.query(q, [id, name, price, short_description, description, is_active]);
-    return res.status(201).json({ status: 201, data: rows[0] });
+    return sendSuccess(res, rows[0], 201);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -96,9 +97,9 @@ adminRouter.put("/:id", async (req, res) => {
     const { name, price, short_description, description, is_active } = req.body;
     const q = `UPDATE product SET name=$1, price=$2, short_description=$3, description=$4, is_active=$5, updated_at=NOW() WHERE id=$6 RETURNING *`;
     const { rows } = await pool.query(q, [name, price, short_description, description, is_active, id]);
-    return res.json({ status: 200, data: rows[0] || null });
+    return sendSuccess(res, rows[0] || null);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -108,9 +109,9 @@ adminRouter.delete("/:id", async (req, res) => {
     const { id } = req.params;
     const q = `UPDATE product SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING *`;
     const { rows } = await pool.query(q, [id]);
-    return res.json({ status: 200, data: rows[0] || null });
+    return sendSuccess(res, rows[0] || null);
   } catch (err) {
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   }
 });
 
@@ -127,10 +128,10 @@ adminRouter.put("/:id/category", async (req, res) => {
       await Promise.all(insertPromises);
     }
     await client.query("COMMIT");
-    return res.json({ status: 200, data: { success: true } });
+    return sendSuccess(res, { success: true });
   } catch (err) {
     await client.query("ROLLBACK");
-    return res.status(500).json({ status: 500, data: null, message: err.message });
+    return sendError(res, err.message);
   } finally {
     client.release();
   }
