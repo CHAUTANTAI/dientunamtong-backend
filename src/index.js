@@ -3,8 +3,11 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
-import productRoute from "./routes/product.route.js";
-import contactRoute from "./routes/contact.route.js";
+import productRoute, { adminRouter as productAdminRouter } from "./routes/product.route.js";
+import contactRoute, { adminRouter as contactAdminRouter } from "./routes/contact.route.js";
+import profileRoute, { adminRouter as profileAdminRouter } from "./routes/profile.routes.js";
+import categoryRoute, { adminRouter as categoryAdminRouter } from "./routes/category.routes.js";
+import productImageRoute, { adminRouter as productImageAdminRouter } from "./routes/productImage.routes.js";
 
 
 const app = express();
@@ -13,6 +16,15 @@ app.use(express.json());
 
 app.use("/api/product", productRoute);
 app.use("/api/contact", contactRoute);
+app.use("/api/profile", profileRoute);
+app.use("/api/category", categoryRoute);
+
+// Admin mounts
+app.use("/api/admin/product", productAdminRouter);
+app.use("/api/admin/product", productImageAdminRouter);
+app.use("/api/admin/contact", contactAdminRouter);
+app.use("/api/admin/profile", profileAdminRouter);
+app.use("/api/admin/category", categoryAdminRouter);
 
 app.listen(process.env.PORT, () => {
   console.log("Server running on port", process.env.PORT);
