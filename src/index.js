@@ -8,6 +8,7 @@ import contactRoute, { adminRouter as contactAdminRouter } from "./routes/contac
 import profileRoute, { adminRouter as profileAdminRouter } from "./routes/profile.routes.js";
 import categoryRoute, { adminRouter as categoryAdminRouter } from "./routes/category.routes.js";
 import productImageRoute, { adminRouter as productImageAdminRouter } from "./routes/productImage.routes.js";
+import authRoute from "./routes/auth.routes.js";
 
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use("/api/product", productRoute);
 app.use("/api/contact", contactRoute);
 app.use("/api/profile", profileRoute);
+app.use("/api/auth", authRoute);
 app.use("/api/category", categoryRoute);
 
 // Admin mounts
