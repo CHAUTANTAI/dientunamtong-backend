@@ -8,12 +8,12 @@ const adminRouter = express.Router();
 
 // Helper to build filters
 function buildListQuery({ isAdmin = false, category_id, searchKey }) {
-  const where = [];
+  const where = [`p.is_active = true`];
   const params = [];
   let idx = 1;
-  if (!isAdmin) {
-    where.push(`p.is_active = true`);
-  }
+  // if (!isAdmin) {
+  //   where.push(`p.is_active = true`);
+  // }
   if (category_id) {
     where.push(`EXISTS (SELECT 1 FROM product_category pc WHERE pc.product_id = p.id AND pc.category_id = $${idx})`);
     params.push(category_id);
@@ -25,7 +25,36 @@ function buildListQuery({ isAdmin = false, category_id, searchKey }) {
     idx++;
   }
   const whereClause = where.length ? `WHERE ` + where.join(" AND ") : "";
-  const q = `SELECT p.id, p.name, p.price, p.short_description, p.is_active, p.created_at, p.updated_at FROM product p ${whereClause} ORDER BY p.created_at DESC`;
+  const q = `
+    SELECT 
+      p.id, 
+      p.name, 
+      p.price, 
+      p.short_description, 
+      p.description,
+      p.is_active, 
+      p.created_at, 
+      p.updated_at,
+      COALESCE(
+        (
+          SELECT json_agg(img ORDER BY img.sort_order)
+          FROM (
+            SELECT 
+              pi.id,
+              pi.image_url,
+              pi.sort_order,
+              pi.created_at
+            FROM product_image pi
+            WHERE pi.product_id = p.id
+            ORDER BY pi.sort_order ASC
+          ) AS img
+        ),
+        '[]'::json
+      ) AS images
+    FROM product p
+    ${whereClause}
+    ORDER BY p.created_at DESC
+  `;
   return { q, params };
 }
 
@@ -72,6 +101,38 @@ adminRouter.get("/", async (req, res) => {
     const values = [...params, parseInt(limit, 10), parseInt(offset, 10)];
     const { rows } = await pool.query(finalQ, values);
     return sendSuccess(res, rows);
+  } catch (err) {
+    return sendError(res, err.message);
+  }
+});
+
+// Admin: GET /api/admin/product/:id/images - list images for a product
+adminRouter.get("/:id/images", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const imgQ = `SELECT id, product_id, image_url, sort_order, created_at FROM product_image WHERE product_id = $1 ORDER BY sort_order ASC`;
+    const { rows } = await pool.query(imgQ, [id]);
+    return sendSuccess(res, rows);
+  } catch (err) {
+    return sendError(res, err.message);
+  }
+});
+
+// Admin: GET /api/admin/product/:id - detail with images and categories
+adminRouter.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const q = `SELECT id, name, price, short_description, description, is_active, created_at, updated_at FROM product WHERE id = $1 LIMIT 1`;
+    const { rows } = await pool.query(q, [id]);
+    if (!rows[0]) return sendError(res, "Not found", 404);
+    const product = rows[0];
+    const imgQ = `SELECT id, image_url, sort_order, created_at FROM product_image WHERE product_id = $1 ORDER BY sort_order ASC`;
+    const catQ = `SELECT c.id, c.name FROM category c JOIN product_category pc ON pc.category_id = c.id WHERE pc.product_id = $1`;
+    const imgs = (await pool.query(imgQ, [id])).rows;
+    const cats = (await pool.query(catQ, [id])).rows;
+    product.images = imgs;
+    product.categories = cats;
+    return sendSuccess(res, product);
   } catch (err) {
     return sendError(res, err.message);
   }

@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
 // Admin: GET /api/admin/category - list all categories
 adminRouter.get("/", async (req, res) => {
   try {
-    const q = `SELECT * FROM category ORDER BY created_at DESC`;
+    const q = `SELECT * FROM category WHERE is_active = true ORDER BY created_at DESC`;
     const { rows } = await pool.query(q);
     return sendSuccess(res, rows);
   } catch (err) {

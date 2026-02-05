@@ -7,7 +7,7 @@ import productRoute, { adminRouter as productAdminRouter } from "./routes/produc
 import contactRoute, { adminRouter as contactAdminRouter } from "./routes/contact.route.js";
 import profileRoute, { adminRouter as profileAdminRouter } from "./routes/profile.routes.js";
 import categoryRoute, { adminRouter as categoryAdminRouter } from "./routes/category.routes.js";
-import productImageRoute, { adminRouter as productImageAdminRouter } from "./routes/productImage.routes.js";
+import productImageRoute, { adminRouter as productImageAdminRouter, uploadRouter as productImageUploadRouter } from "./routes/productImage.routes.js";
 import authRoute from "./routes/auth.routes.js";
 
 
@@ -23,7 +23,8 @@ app.use("/api/category", categoryRoute);
 
 // Admin mounts
 app.use("/api/admin/product", productAdminRouter);
-app.use("/api/admin/product", productImageAdminRouter);
+app.use("/api/admin/product", productImageUploadRouter); // Legacy upload endpoint
+app.use("/api/admin/product-image", productImageAdminRouter);
 app.use("/api/admin/contact", contactAdminRouter);
 app.use("/api/admin/profile", profileAdminRouter);
 app.use("/api/admin/category", categoryAdminRouter);
