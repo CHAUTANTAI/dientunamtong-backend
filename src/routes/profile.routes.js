@@ -17,10 +17,10 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Admin: GET /api/admin/profile - return full profile
+// Admin: GET /api/admin/profile - return full profile (without password)
 adminRouter.get("/", async (req, res) => {
   try {
-    const q = `SELECT * FROM profile ORDER BY created_at LIMIT 1`;
+    const q = `SELECT id, company_name, phone, address, email, username, logo, is_active, created_at, updated_at FROM profile ORDER BY created_at LIMIT 1`;
     const { rows } = await pool.query(q);
     return sendSuccess(res, rows[0] || null);
   } catch (err) {
