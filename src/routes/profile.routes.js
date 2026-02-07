@@ -46,10 +46,17 @@ adminRouter.post("/login", async (req, res) => {
 adminRouter.put("/", async (req, res) => {
   try {
     const { company_name, phone, address, email, logo, is_active } = req.body;
-    const q = `UPDATE profile SET company_name = $1, phone = $2, address = $3, email = $4, logo = $5, is_active = $6, updated_at = NOW() RETURNING *`;
+    // Update the first profile record (single profile system)
+    const q = `
+      UPDATE profile 
+      SET company_name = $1, phone = $2, address = $3, email = $4, logo = $5, is_active = COALESCE($6, is_active), updated_at = NOW() 
+      WHERE id = (SELECT id FROM profile ORDER BY created_at LIMIT 1)
+      RETURNING id, company_name, phone, address, email, username, logo, is_active, created_at, updated_at
+    `;
     const values = [company_name, phone, address, email, logo, is_active];
     const { rows } = await pool.query(q, values);
-    return sendSuccess(res, rows[0] || null);
+    if (!rows[0]) return sendError(res, "Profile not found", 404);
+    return sendSuccess(res, rows[0]);
   } catch (err) {
     return sendError(res, err.message);
   }
