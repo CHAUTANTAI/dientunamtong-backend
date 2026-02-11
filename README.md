@@ -1,271 +1,384 @@
-# Backend API - Điện Tử Nam Tông
+# 🏪 Backend API - Điện Tử Nam Tông
 
-Backend API v2.0 xây dựng với **TypeScript**, **Express.js**, **TypeORM**, và **PostgreSQL**.
+**E-Commerce Backend API v2.1** - TypeScript + Express + TypeORM + PostgreSQL
 
-## 📚 Documentation
-
-**[→ VIEW COMPLETE DOCUMENTATION INDEX](./INDEX.md)** ← Start Here!
-
-### Quick Links
-- 🚀 **[Quick Start (5 minutes)](./QUICKSTART.md)** - Get running fast
-- 📚 **[API Documentation](./API_DOCUMENTATION.md)** - Complete API reference
-- 🏗️ **[Architecture Guide](./ARCHITECTURE.md)** - System design
-- 🚀 **[Deployment Guide](./DEPLOYMENT.md)** - Production setup
-- 🔄 **[Migration Guide](./MIGRATION_GUIDE.md)** - Upgrade from v1.0
+> Backend API cho hệ thống catalog điện tử với **category tree**, **media management**, **advanced filtering & search**.
 
 ---
 
-## 🏗️ Kiến Trúc
+## 📚 Quick Links
 
-Dự án được tổ chức theo **Clean Architecture** với các layers sau:
+| Document | Description |
+|----------|-------------|
+| **[QUICKSTART.md](./QUICKSTART.md)** | 🚀 Setup & Run trong 5 phút |
+| **[DATABASE.md](./DATABASE.md)** | 🗄️ Database schema & migration |
+| **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** | 📖 Complete API reference |
+| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | 🏗️ System architecture |
+| **[DEPLOYMENT.md](./DEPLOYMENT.md)** | 🌐 Production deployment |
 
-```
-src/
-├── config/           # Cấu hình (database, env, supabase)
-├── entities/         # TypeORM entities (domain models)
-├── repositories/     # Data access layer
-├── services/         # Business logic layer
-├── controllers/      # HTTP request handlers
-├── middlewares/      # Express middlewares (auth, error, validation)
-├── routes/           # API routes
-├── types/            # TypeScript types & DTOs
-├── utils/            # Utility functions & validators
-└── index.ts          # Application entry point
-```
+---
 
-## 🚀 Getting Started
+## ✨ Key Features
 
-### Prerequisites
+### 🗂️ **Advanced Category System**
+- ✅ **Nested categories** - Unlimited levels với Tree Closure Table
+- ✅ **Fast tree operations** - Get descendants/ancestors trong 1 query
+- ✅ **Breadcrumb support** - Auto-generate navigation paths
+- ✅ **Drag & drop** - Move categories với automatic level calculation
 
-- Node.js >= 18
-- PostgreSQL >= 14
-- Supabase account (for file storage)
+### 🎯 **Product Management**
+- ✅ **Rich filtering** - Category, price range, tags, stock status
+- ✅ **Full-text search** - Name, description, SKU với indexes
+- ✅ **Include descendants** - Tìm products trong category + subcategories
+- ✅ **Related products** - Auto-suggest based on categories
+- ✅ **Featured products** - Sorting by view count
+- ✅ **Tag system** - Flexible product tagging
 
-### Installation
+### 📸 **Media Management**
+- ✅ **Multi-media support** - Image, Video, Audio, Document
+- ✅ **Supabase Storage** - CDN-backed file storage
+- ✅ **Sort ordering** - Drag & drop media ordering
+- ✅ **Bulk upload** - Upload multiple files at once
+- ✅ **Orphan cleanup** - Auto-detect unused media
 
-1. **Install dependencies:**
-```bash
-npm install
-```
+### 🔐 **Authentication & Authorization**
+- ✅ **JWT-based auth** - Secure token authentication
+- ✅ **Role-based access** - Admin, Manager, Staff roles
+- ✅ **Protected routes** - Middleware-based authorization
 
-2. **Configure environment variables:**
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
+### 📊 **Performance Optimizations**
+- ✅ **Database indexes** - Optimized for search/filter queries
+- ✅ **Eager/Lazy loading** - Smart relation loading
+- ✅ **Query builder** - Complex filters without N+1
+- ✅ **Pagination** - Efficient data loading
 
-3. **Run database migrations:**
-
-TypeORM will auto-sync schema in development mode. For production, use migrations:
-
-```bash
-# Generate migration from entities
-npm run migration:generate -- src/migrations/InitialMigration
-
-# Run migrations
-npm run migration:run
-
-# Revert last migration
-npm run migration:revert
-```
-
-### Development
-
-```bash
-npm run dev
-```
-
-Server will start at `http://localhost:4000`
-
-### Production
-
-```bash
-# Build TypeScript
-npm run build
-
-# Start production server
-npm start
-```
-
-## 📚 API Documentation
-
-### Base URL
-```
-http://localhost:4000/api
-```
-
-### Authentication
-
-Most admin endpoints require JWT authentication. Include token in header:
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-### Endpoints Overview
-
-#### Auth
-- `POST /api/auth/login` - Login
-- `POST /api/auth/logout` - Logout (requires auth)
-- `GET /api/auth/me` - Get current user (requires auth)
-
-#### Products (Public)
-- `GET /api/product` - Get all active products
-- `GET /api/product/:id` - Get product detail
-
-#### Products (Admin)
-- `GET /api/admin/product` - Get all products
-- `GET /api/admin/product/:id` - Get product detail
-- `POST /api/admin/product` - Create product
-- `PUT /api/admin/product/:id` - Update product
-- `DELETE /api/admin/product/:id` - Delete product (soft)
-- `PUT /api/admin/product/:id/category` - Update product categories
-
-#### Product Images (Admin)
-- `GET /api/admin/product/:id/images` - Get product images
-- `POST /api/admin/product-image` - Add product image
-- `POST /api/admin/product/:id/image` - Upload image (legacy)
-- `DELETE /api/admin/product-image/:imageId` - Delete image
-- `PUT /api/admin/product-image/:imageId/sort` - Update sort order
-
-#### Categories (Public)
-- `GET /api/category` - Get all active categories
-
-#### Categories (Admin)
-- `GET /api/admin/category` - Get all categories
-- `GET /api/admin/category/:id` - Get category detail
-- `POST /api/admin/category` - Create category
-- `PUT /api/admin/category/:id` - Update category
-- `DELETE /api/admin/category/:id` - Delete category (soft)
-
-#### Contacts (Public)
-- `POST /api/contact` - Create contact
-
-#### Contacts (Admin)
-- `GET /api/admin/contact` - Get all contacts
-- `GET /api/admin/contact/:id` - Get contact detail
-- `PUT /api/admin/contact/:id` - Update contact status
-- `DELETE /api/admin/contact/:id` - Delete contact
-
-#### Profile (Public)
-- `GET /api/profile` - Get public company info
-
-#### Profile (Admin)
-- `GET /api/admin/profile` - Get full profile
-- `PUT /api/admin/profile` - Update profile
-- `PUT /api/admin/profile/password` - Change password
-
-## 🗄️ Database Schema
-
-### Entities
-
-- **Product** - Sản phẩm
-- **ProductImage** - Ảnh sản phẩm
-- **Category** - Danh mục
-- **Contact** - Liên hệ từ khách hàng
-- **Profile** - Thông tin công ty & admin user
-
-Relations:
-- Product 1-N ProductImage
-- Product N-N Category (through product_category junction table)
-
-## 🔐 Security Features
-
-✅ **Password Hashing** - bcrypt  
-✅ **JWT Authentication** - jsonwebtoken  
-✅ **Role-based Access Control** - Admin, Manager, Staff roles  
-✅ **Input Validation** - express-validator  
-✅ **SQL Injection Protection** - TypeORM parameterized queries  
-✅ **Error Handling** - Global error handler  
+---
 
 ## 🛠️ Tech Stack
 
-- **Language:** TypeScript
-- **Framework:** Express.js
-- **ORM:** TypeORM
-- **Database:** PostgreSQL
-- **Storage:** Supabase Storage
-- **Authentication:** JWT (jsonwebtoken)
-- **Validation:** express-validator
-- **Password Hashing:** bcrypt
-- **File Upload:** multer
-
-## 📝 Scripts
-
-```bash
-npm run dev              # Start development server with hot reload
-npm run build            # Build TypeScript to JavaScript
-npm start                # Start production server
-npm run typeorm          # Run TypeORM CLI commands
-npm run migration:generate  # Generate migration from entities
-npm run migration:run    # Run pending migrations
-npm run migration:revert # Revert last migration
-npm run schema:sync      # Sync schema with database (dev only)
-npm run schema:drop      # Drop all database tables (⚠️ dangerous)
-```
-
-## 🔄 Code-First Database Management
-
-This project uses **TypeORM Code-First Approach**:
-
-1. Define entities in `src/entities/` with decorators
-2. TypeORM generates database schema from entities
-3. In development: auto-sync enabled
-4. In production: use migrations
-
-### Example: Adding New Entity
-
 ```typescript
-// src/entities/NewEntity.ts
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
-
-@Entity("new_entity")
-export class NewEntity {
-  @PrimaryGeneratedColumn("uuid")
-  id!: string;
-
-  @Column({ type: "varchar", length: 255 })
-  name!: string;
+{
+  "runtime": "Node.js 18+",
+  "language": "TypeScript 5.3",
+  "framework": "Express.js 4.19",
+  "orm": "TypeORM 0.3.20",
+  "database": "PostgreSQL 14+",
+  "storage": "Supabase Storage",
+  "auth": "JWT + bcrypt",
+  "validation": "express-validator"
 }
 ```
 
-Then run:
-```bash
-npm run migration:generate -- src/migrations/AddNewEntity
-npm run migration:run
+---
+
+## 🏗️ Architecture
+
+```
+backend/
+├── src/
+│   ├── config/           # Database, ENV, Supabase config
+│   ├── entities/         # TypeORM entities (domain models)
+│   │   ├── Category.ts     → Tree structure với @Tree("closure-table")
+│   │   ├── Product.ts      → With media, tags, specifications
+│   │   ├── Media.ts        → Multi-media support
+│   │   ├── Profile.ts      → User accounts
+│   │   └── Contact.ts      → Contact submissions
+│   ├── repositories/     # Data access layer
+│   │   ├── CategoryRepository.ts  → Tree operations
+│   │   ├── ProductRepository.ts   → Advanced filters
+│   │   └── MediaRepository.ts     → Media management
+│   ├── services/         # Business logic
+│   ├── controllers/      # HTTP handlers
+│   ├── routes/           # API routes
+│   │   ├── Public routes    → /api/category, /api/product
+│   │   └── Admin routes     → /api/admin/*
+│   ├── middlewares/      # Auth, validation, error handling
+│   ├── types/            # DTOs & TypeScript types
+│   └── utils/            # Validators & helpers
+│
+├── .env                  # Environment variables
+├── package.json
+└── tsconfig.json
 ```
 
-## 🚨 Error Handling
-
-All errors are handled by global error middleware. Custom error classes:
-
-- `AppError` - Base error class
-- `NotFoundError` - 404 errors
-- `ValidationError` - 400 validation errors
-- `UnauthorizedError` - 401 auth errors
-- `ForbiddenError` - 403 permission errors
-
-## 📦 Environment Variables
-
-See `.env.example` for all required environment variables.
-
-**Important:**
-- Change `JWT_SECRET` in production
-- Use strong database password
-- Enable SSL for production database
-
-## 🤝 Contributing
-
-1. Create feature branch from `main`
-2. Follow existing code structure
-3. Add validation for new endpoints
-4. Test before committing
-
-## 📄 License
-
-ISC
+**Design Pattern:** Clean Architecture với clear separation of concerns
 
 ---
 
-**Version:** 2.0.0  
-**Last Updated:** February 2026
+## 🚀 Quick Start
 
+### 1. Prerequisites
+```bash
+Node.js >= 18
+PostgreSQL >= 14
+npm or yarn
+Supabase account (for file storage)
+```
+
+### 2. Installation
+```bash
+# Install dependencies
+npm install
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Run migrations (TypeORM auto-sync in dev)
+npm run dev
+```
+
+### 3. Create Admin User
+```bash
+npm run seed:admin
+
+# Default credentials:
+# Username: admin
+# Password: Admin@123
+```
+
+### 4. Start Development Server
+```bash
+npm run dev
+
+# Server running at http://localhost:4000
+```
+
+**→ Full setup guide: [QUICKSTART.md](./QUICKSTART.md)**
+
+---
+
+## 📖 API Endpoints
+
+### Public Endpoints
+
+#### Categories
+```http
+GET    /api/category              # List categories
+GET    /api/category/tree         # Full tree structure
+GET    /api/category/roots        # Root categories only
+GET    /api/category/:id          # Get by ID
+GET    /api/category/slug/:slug   # Get by slug
+GET    /api/category/:id/children # Get children
+GET    /api/category/:id/breadcrumb # Get breadcrumb path
+GET    /api/category/search?q=... # Search categories
+```
+
+#### Products
+```http
+GET    /api/product                      # List with filters
+GET    /api/product/:id                  # Get by ID
+GET    /api/product/slug/:slug           # Get by slug
+GET    /api/product/:id/related          # Related products
+GET    /api/product/featured             # Featured products
+GET    /api/product/category/:slug       # By category
+GET    /api/product/tag/:tag             # By tag
+GET    /api/product/tags                 # All tags
+```
+
+**Filtering & Search:**
+```http
+GET /api/product?
+  category_id=uuid                 # Filter by category
+  &include_descendants=true        # Include subcategories
+  &searchKey=laptop                # Search in name/desc/sku
+  &min_price=1000                  # Price range
+  &max_price=50000
+  &tags=gaming,rgb                 # Filter by tags
+  &in_stock=true                   # Only in-stock
+  &sort_by=price                   # Sort by: price, name, created_at
+  &sort_order=ASC                  # ASC or DESC
+  &limit=20                        # Pagination
+  &offset=0
+```
+
+### Admin Endpoints (Require Authentication)
+
+```http
+# Authentication
+POST   /api/auth/login           # Login
+POST   /api/auth/logout          # Logout
+
+# Category Management
+POST   /api/admin/category       # Create category
+PUT    /api/admin/category/:id   # Update category
+DELETE /api/admin/category/:id   # Soft delete
+PATCH  /api/admin/category/:id/move  # Move to different parent
+
+# Product Management
+POST   /api/admin/product        # Create product
+PUT    /api/admin/product/:id    # Update product
+DELETE /api/admin/product/:id    # Soft delete
+PUT    /api/admin/product/:id/category  # Update categories
+
+# Media Management
+POST   /api/admin/media          # Create media record
+POST   /api/admin/media/bulk     # Bulk create
+PATCH  /api/admin/media/:id/sort-order  # Update sort order
+DELETE /api/admin/media/:id      # Delete media
+GET    /api/admin/media/orphan   # Get orphan media
+DELETE /api/admin/media/orphan/cleanup  # Cleanup orphans
+```
+
+**→ Complete API docs: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)**
+
+---
+
+## 🗄️ Database Schema
+
+### Core Tables
+```
+profile          → User accounts (admin, manager, staff)
+category         → Nested categories with tree structure
+category_closure → Tree closure table (auto-managed by TypeORM)
+product          → Products with media, tags, specifications
+product_category → Many-to-many junction table
+media            → Multi-media storage (image, video, audio, document)
+contact          → Contact form submissions
+```
+
+### Key Features
+- ✅ **UUID Primary Keys** - Better for distributed systems
+- ✅ **Timestamps** - Auto created_at/updated_at
+- ✅ **Soft Deletes** - is_active flags
+- ✅ **Indexes** - Optimized for search/filter queries
+- ✅ **Foreign Keys** - Referential integrity with CASCADE/SET NULL
+- ✅ **JSONB** - Flexible specifications field
+- ✅ **Array** - Native PostgreSQL array for tags
+- ✅ **Enums** - Type-safe status/role fields
+
+**→ Full schema: [DATABASE.md](./DATABASE.md)**
+
+---
+
+## 📦 npm Scripts
+
+```bash
+# Development
+npm run dev          # Start dev server with hot reload
+npm run build        # Build for production
+npm run start        # Start production server
+
+# Database
+npm run seed:admin   # Create admin user
+npm run typeorm      # TypeORM CLI
+
+# Linting
+npm run lint         # Check code quality
+npm run lint:fix     # Auto-fix issues
+```
+
+---
+
+## 🌳 Environment Variables
+
+```env
+# Server
+NODE_ENV=development
+PORT=4000
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_NAME=dien_tu_nam_tong
+DB_SSL=false
+
+# JWT
+JWT_SECRET=your_secret_key
+JWT_EXPIRES_IN=7d
+
+# Supabase
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_KEY=your_supabase_key
+```
+
+---
+
+## 🔒 Security
+
+- ✅ **JWT Authentication** - Token-based auth
+- ✅ **bcrypt** - Password hashing (10 rounds)
+- ✅ **Role-based access** - Admin/Manager/Staff
+- ✅ **Input validation** - express-validator
+- ✅ **SQL injection protection** - TypeORM parameterized queries
+- ✅ **CORS** - Configurable origins
+- ✅ **Rate limiting** - (Add if needed)
+
+---
+
+## 🎯 Development Workflow
+
+### 1. Create Feature
+```bash
+# Create entity → Repository → Service → Controller → Routes
+src/entities/NewEntity.ts
+src/repositories/NewEntityRepository.ts
+src/services/NewEntityService.ts
+src/controllers/NewEntityController.ts
+src/routes/newEntity.routes.ts
+```
+
+### 2. Register Routes
+```typescript
+// src/routes/index.ts
+import newEntityRoutes from "./newEntity.routes";
+router.use("/api/new-entity", newEntityRoutes);
+```
+
+### 3. Test API
+```bash
+# Use Thunder Client, Postman, or curl
+curl http://localhost:4000/api/new-entity
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Database Connection Failed
+```bash
+# Check PostgreSQL is running
+sudo systemctl status postgresql
+
+# Test connection
+psql -h localhost -U postgres -d dien_tu_nam_tong
+```
+
+### Port Already in Use
+```bash
+# Kill process on port 4000
+# Windows
+netstat -ano | findstr :4000
+taskkill /PID <PID> /F
+
+# Linux/Mac
+lsof -ti:4000 | xargs kill -9
+```
+
+### TypeORM Sync Issues
+```bash
+# Drop and recreate database
+dropdb dien_tu_nam_tong
+createdb dien_tu_nam_tong
+npm run dev
+```
+
+---
+
+## 📝 License
+
+Private Project - Điện Tử Nam Tông
+
+---
+
+## 👥 Team
+
+Backend Development Team - 2026
+
+---
+
+## 📞 Support
+
+For questions or issues, contact the development team.
