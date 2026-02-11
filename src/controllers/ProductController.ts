@@ -10,7 +10,7 @@ export class ProductController {
     this.productService = new ProductService();
   }
 
-  getAllProducts = async (lint
+  getAllProducts = async (
     req: Request,
     res: Response,
     next: NextFunction
