@@ -42,9 +42,22 @@ export const createProductValidator = [
 
 export const updateProductValidator = [
   param("id").isUUID().withMessage("Invalid product ID"),
-  ...createProductValidator.map((rule) =>
-    rule.optional ? rule : rule.optional()
-  ),
+  body("name")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Product name is required")
+    .isLength({ max: 255 })
+    .withMessage("Product name must not exceed 255 characters"),
+  body("price")
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage("Price must be a non-negative number"),
+  body("description")
+    .optional()
+    .isLength({ max: 5000 })
+    .withMessage("Description must not exceed 5000 characters"),
+  body("is_active").optional().isBoolean().withMessage("is_active must be boolean"),
 ];
 
 export const productIdValidator = [
@@ -77,9 +90,18 @@ export const createCategoryValidator = [
 
 export const updateCategoryValidator = [
   param("id").isUUID().withMessage("Invalid category ID"),
-  ...createCategoryValidator.map((rule) =>
-    rule.optional ? rule : rule.optional()
-  ),
+  body("name")
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage("Category name is required")
+    .isLength({ max: 255 })
+    .withMessage("Category name must not exceed 255 characters"),
+  body("description")
+    .optional()
+    .isLength({ max: 1000 })
+    .withMessage("Description must not exceed 1000 characters"),
+  body("is_active").optional().isBoolean().withMessage("is_active must be boolean"),
 ];
 
 export const categoryIdValidator = [

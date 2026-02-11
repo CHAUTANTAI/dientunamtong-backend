@@ -50,3 +50,20 @@ export class ForbiddenError extends AppError {
   }
 }
 
+/**
+ * Helper function to create success response
+ */
+export function successResponse<T = any>(
+  data: T,
+  message?: string,
+  meta?: Record<string, any>
+): ApiResponse<T> & { meta?: Record<string, any> } {
+  return {
+    success: true,
+    data,
+    message,
+    statusCode: 200,
+    ...meta,
+  };
+}
+
