@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "seed:admin": "tsx src/seeds/create-admin.ts",
+    "reset:admin": "tsx src/seeds/reset-admin.ts",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "build": "tsc",

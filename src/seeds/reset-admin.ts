@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { AppDataSource } from "@config/database";
 import { Profile, UserRole } from "@entities/Profile";
 
-async function createAdmin() {
+async function resetAdmin() {
   try {
     console.log("🔄 Connecting to database...");
     await AppDataSource.initialize();
@@ -10,19 +10,13 @@ async function createAdmin() {
 
     const profileRepo = AppDataSource.getRepository(Profile);
 
-    // Check if admin exists
-    const existingAdmin = await profileRepo.findOne({
-      where: { username: "admin" },
-    });
+    // Delete existing admin
+    console.log("🔄 Deleting existing admin user...");
+    await profileRepo.delete({ username: "admin" });
+    console.log("✅ Admin user deleted");
 
-    if (existingAdmin) {
-      console.log("ℹ️  Admin user already exists");
-      console.log("   Username: admin");
-      process.exit(0);
-    }
-
-    // Create admin
-    console.log("🔄 Creating admin user...");
+    // Create new admin
+    console.log("🔄 Creating new admin user...");
     // ⚠️ Don't hash here - @BeforeInsert hook will auto-hash
 
     const admin = profileRepo.create({
@@ -41,7 +35,7 @@ async function createAdmin() {
     console.log(`
 ╔════════════════════════════════════════════════╗
 ║                                                ║
-║   ✅ Admin User Created Successfully!         ║
+║   ✅ Admin User Reset Successfully!           ║
 ║                                                ║
 ║   👤 Username: admin                          ║
 ║   🔒 Password: Admin@123                      ║
@@ -57,10 +51,10 @@ async function createAdmin() {
     await AppDataSource.destroy();
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error creating admin:", error);
+    console.error("❌ Error resetting admin:", error);
     process.exit(1);
   }
 }
 
-createAdmin();
+resetAdmin();
 
