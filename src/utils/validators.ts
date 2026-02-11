@@ -162,29 +162,3 @@ export const updatePasswordValidator = [
     .withMessage("Password must be at least 6 characters"),
 ];
 
-// ============= Product Image Validators =============
-export const addProductImageValidator = [
-  body("product_id").isUUID().withMessage("Invalid product ID"),
-  body("image_url")
-    .trim()
-    .notEmpty()
-    .withMessage("Image URL is required")
-    .isLength({ max: 500 })
-    .withMessage("Image URL must not exceed 500 characters"),
-  body("sort_order")
-    .optional()
-    .isInt({ min: 0 })
-    .withMessage("Sort order must be a non-negative integer"),
-];
-
-export const updateImageSortValidator = [
-  param("imageId").isUUID().withMessage("Invalid image ID"),
-  body("sort_order")
-    .isInt({ min: 0 })
-    .withMessage("Sort order must be a non-negative integer"),
-];
-
-export const imageIdValidator = [
-  param("imageId").isUUID().withMessage("Invalid image ID"),
-];
-

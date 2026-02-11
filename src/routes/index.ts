@@ -4,10 +4,7 @@ import productRoutes, { adminRouter as productAdminRouter } from "./product.rout
 import categoryRoutes, { adminRouter as categoryAdminRouter } from "./category.routes";
 import contactRoutes, { adminRouter as contactAdminRouter } from "./contact.routes";
 import profileRoutes, { adminRouter as profileAdminRouter } from "./profile.routes";
-import {
-  adminRouter as productImageAdminRouter,
-  uploadRouter as productImageUploadRouter,
-} from "./productImage.routes";
+import mediaRoutes from "./media.routes";
 
 const router = Router();
 
@@ -20,11 +17,10 @@ router.use("/profile", profileRoutes);
 
 // Admin routes
 router.use("/admin/product", productAdminRouter);
-router.use("/admin/product", productImageUploadRouter); // Legacy upload endpoint
-router.use("/admin/product-image", productImageAdminRouter);
 router.use("/admin/category", categoryAdminRouter);
 router.use("/admin/contact", contactAdminRouter);
 router.use("/admin/profile", profileAdminRouter);
+router.use("/admin/media", mediaRoutes);
 
 export default router;
 

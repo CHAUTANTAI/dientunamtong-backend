@@ -22,6 +22,41 @@ const productController = new ProductController();
 router.get("/", productController.getAllProducts);
 
 /**
+ * @route   GET /api/product/featured
+ * @desc    Get featured products
+ * @access  Public
+ */
+router.get("/featured", productController.getFeaturedProducts);
+
+/**
+ * @route   GET /api/product/tags
+ * @desc    Get all product tags
+ * @access  Public
+ */
+router.get("/tags", productController.getAllTags);
+
+/**
+ * @route   GET /api/product/tag/:tag
+ * @desc    Get products by tag
+ * @access  Public
+ */
+router.get("/tag/:tag", productController.getProductsByTag);
+
+/**
+ * @route   GET /api/product/category/:slug
+ * @desc    Get products by category slug
+ * @access  Public
+ */
+router.get("/category/:slug", productController.getProductsByCategorySlug);
+
+/**
+ * @route   GET /api/product/slug/:slug
+ * @desc    Get product by slug
+ * @access  Public
+ */
+router.get("/slug/:slug", productController.getProductBySlug);
+
+/**
  * @route   GET /api/product/:id
  * @desc    Get product by ID
  * @access  Public
@@ -30,6 +65,17 @@ router.get(
   "/:id",
   validate(productIdValidator),
   productController.getProductById
+);
+
+/**
+ * @route   GET /api/product/:id/related
+ * @desc    Get related products
+ * @access  Public
+ */
+router.get(
+  "/:id/related",
+  validate(productIdValidator),
+  productController.getRelatedProducts
 );
 
 // ============= Admin Routes =============
@@ -46,6 +92,30 @@ adminRouter.get(
 );
 
 /**
+ * @route   GET /api/admin/product/featured
+ * @desc    Get featured products
+ * @access  Private (Admin)
+ */
+adminRouter.get(
+  "/featured",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  productController.getFeaturedProducts
+);
+
+/**
+ * @route   GET /api/admin/product/tags
+ * @desc    Get all product tags
+ * @access  Private (Admin)
+ */
+adminRouter.get(
+  "/tags",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  productController.getAllTags
+);
+
+/**
  * @route   GET /api/admin/product/:id
  * @desc    Get product by ID
  * @access  Private (Admin)
@@ -56,6 +126,19 @@ adminRouter.get(
   authorize(UserRole.ADMIN),
   validate(productIdValidator),
   productController.getProductById
+);
+
+/**
+ * @route   GET /api/admin/product/:id/related
+ * @desc    Get related products
+ * @access  Private (Admin)
+ */
+adminRouter.get(
+  "/:id/related",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate(productIdValidator),
+  productController.getRelatedProducts
 );
 
 /**
@@ -95,6 +178,19 @@ adminRouter.delete(
   authorize(UserRole.ADMIN),
   validate(productIdValidator),
   productController.deleteProduct
+);
+
+/**
+ * @route   DELETE /api/admin/product/:id/permanent
+ * @desc    Permanently delete product
+ * @access  Private (Admin)
+ */
+adminRouter.delete(
+  "/:id/permanent",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate(productIdValidator),
+  productController.hardDeleteProduct
 );
 
 /**

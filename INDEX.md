@@ -73,6 +73,8 @@ Tech stack, features, commands, development info.
 ### 🔧 Installation & Setup
 - **Quick Start:** [QUICKSTART.md](./QUICKSTART.md)
 - **Detailed Setup:** [SETUP.md](./SETUP.md)
+- **Database Guide:** [DB_QUICK_GUIDE.md](./DB_QUICK_GUIDE.md) ⭐ NEW!
+- **Database Deep Dive:** [DATABASE_EXPLAINED.md](./DATABASE_EXPLAINED.md) ⭐ NEW!
 - **Migration:** [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)
 
 ### 🏗️ Architecture & Design

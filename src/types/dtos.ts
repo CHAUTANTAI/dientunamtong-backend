@@ -1,40 +1,104 @@
-import { ContactStatus, UserRole } from "@entities/index";
+import { ContactStatus, UserRole, MediaType } from "@entities/index";
 
 // ============= Product DTOs =============
 export interface CreateProductDto {
   name: string;
+  slug?: string;
+  sku?: string;
   price?: number;
   short_description?: string;
   description?: string;
+  specifications?: Record<string, any>;
+  tags?: string[];
   is_active?: boolean;
+  in_stock?: boolean;
+  category_ids?: string[];
 }
 
 export interface UpdateProductDto {
   name?: string;
+  slug?: string;
+  sku?: string;
   price?: number;
   short_description?: string;
   description?: string;
+  specifications?: Record<string, any>;
+  tags?: string[];
   is_active?: boolean;
+  in_stock?: boolean;
 }
 
 export interface ProductFilterDto {
   category_id?: string;
+  category_ids?: string[];
   searchKey?: string;
   is_active?: boolean;
+  in_stock?: boolean;
+  min_price?: number;
+  max_price?: number;
+  tags?: string[];
+  sort_by?: string;
+  sort_order?: "ASC" | "DESC";
   limit?: number;
   offset?: number;
+  include_descendants?: boolean;
 }
 
 // ============= Category DTOs =============
 export interface CreateCategoryDto {
   name: string;
+  slug?: string;
   description?: string;
+  parent_id?: string;
+  media_id?: string;
+  sort_order?: number;
   is_active?: boolean;
 }
 
 export interface UpdateCategoryDto {
   name?: string;
+  slug?: string;
   description?: string;
+  parent_id?: string;
+  media_id?: string;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
+// ============= Media DTOs =============
+export interface CreateMediaDto {
+  file_name?: string;
+  file_url: string;
+  media_type?: MediaType;
+  mime_type?: string;
+  file_size?: number;
+  width?: number;
+  height?: number;
+  alt_text?: string;
+  description?: string;
+  sort_order?: number;
+  product_id?: string;
+  is_active?: boolean;
+}
+
+export interface UpdateMediaDto {
+  file_name?: string;
+  file_url?: string;
+  media_type?: MediaType;
+  mime_type?: string;
+  file_size?: number;
+  width?: number;
+  height?: number;
+  alt_text?: string;
+  description?: string;
+  sort_order?: number;
+  product_id?: string;
+  is_active?: boolean;
+}
+
+export interface MediaFilterDto {
+  media_type?: MediaType;
+  product_id?: string;
   is_active?: boolean;
 }
 
@@ -94,16 +158,5 @@ export interface AuthResponseDto {
     role: UserRole;
   };
   message?: string;
-}
-
-// ============= Product Image DTOs =============
-export interface AddProductImageDto {
-  product_id: string;
-  image_url: string;
-  sort_order?: number;
-}
-
-export interface UpdateProductImageSortDto {
-  sort_order: number;
 }
 
