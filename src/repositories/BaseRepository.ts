@@ -1,10 +1,10 @@
-import { Repository, FindOptionsWhere, FindManyOptions } from "typeorm";
+import { Repository, FindOptionsWhere, FindManyOptions, ObjectLiteral, EntityTarget } from "typeorm";
 import { AppDataSource } from "@config/database";
 
-export class BaseRepository<T> {
+export class BaseRepository<T extends ObjectLiteral> {
   protected repository: Repository<T>;
 
-  constructor(entity: any) {
+  constructor(entity: EntityTarget<T>) {
     this.repository = AppDataSource.getRepository(entity);
   }
 
@@ -14,7 +14,7 @@ export class BaseRepository<T> {
 
   async findById(id: string, relations?: string[]): Promise<T | null> {
     return await this.repository.findOne({
-      where: { id } as FindOptionsWhere<T>,
+      where: { id } as unknown as FindOptionsWhere<T>,
       relations,
     });
   }
@@ -25,7 +25,7 @@ export class BaseRepository<T> {
 
   async create(data: Partial<T>): Promise<T> {
     const entity = this.repository.create(data as any);
-    return await this.repository.save(entity);
+    return await this.repository.save(entity) as unknown as T;
   }
 
   async update(id: string, data: Partial<T>): Promise<T | null> {
