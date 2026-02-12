@@ -8,7 +8,7 @@
     "reset:admin": "tsx src/seeds/reset-admin.ts",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run": "npm run typeorm -- migration:run -d src/config/database.ts",
@@ -16,10 +16,16 @@
     "schema:sync": "npm run typeorm -- schema:sync -d src/config/database.ts",
     "schema:drop": "npm run typeorm -- schema:drop -d src/config/database.ts"
   },
-  "keywords": ["api", "typeorm", "express", "typescript"],
+  "keywords": [
+    "api",
+    "typeorm",
+    "express",
+    "typescript"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@supabase/supabase-js": "^2.28.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
@@ -27,10 +33,9 @@
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
-    "reflect-metadata": "^0.2.1",
-    "typeorm": "^0.3.20",
     "pg": "^8.18.0",
-    "@supabase/supabase-js": "^2.28.0"
+    "reflect-metadata": "^0.2.1",
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -39,6 +44,7 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.11.24",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"
   }
