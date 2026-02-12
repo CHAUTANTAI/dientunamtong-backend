@@ -1,13 +1,34 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config();
 
-// Determine if running from compiled code
-const isProduction = process.env.NODE_ENV === "production";
-const entityPath = isProduction ? "dist/entities/**/*.js" : "src/entities/**/*.ts";
-const migrationPath = isProduction ? "dist/migrations/**/*.js" : "src/migrations/**/*.ts";
+// Determine if running from compiled code by checking if __dirname contains 'dist'
+const isCompiledCode = __dirname.includes("dist");
+
+// Calculate entity and migration paths
+let entityPath: string;
+let migrationPath: string;
+
+if (isCompiledCode) {
+  // Running from dist/config/database.js - go up to project root, then into dist/entities
+  const projectRoot = path.resolve(__dirname, "..", "..");
+  entityPath = path.join(projectRoot, "dist", "entities", "**", "*.js");
+  migrationPath = path.join(projectRoot, "dist", "migrations", "**", "*.js");
+  
+  // Debug logging for production
+  console.log("🔍 Database Config Debug:");
+  console.log("  __dirname:", __dirname);
+  console.log("  projectRoot:", projectRoot);
+  console.log("  entityPath:", entityPath);
+  console.log("  migrationPath:", migrationPath);
+} else {
+  // Running from src/config/database.ts in development
+  entityPath = path.join(__dirname, "..", "entities", "**", "*.ts");
+  migrationPath = path.join(__dirname, "..", "migrations", "**", "*.ts");
+}
 
 export const AppDataSource = new DataSource({
   type: "postgres",
