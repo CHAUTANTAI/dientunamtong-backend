@@ -4,6 +4,11 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Determine if running from compiled code
+const isProduction = process.env.NODE_ENV === "production";
+const entityPath = isProduction ? "dist/entities/**/*.js" : "src/entities/**/*.ts";
+const migrationPath = isProduction ? "dist/migrations/**/*.js" : "src/migrations/**/*.ts";
+
 export const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.DB_HOST || "localhost",
@@ -13,8 +18,8 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || "dien_tu_nam_tong",
   synchronize: process.env.NODE_ENV === "development", // Auto-sync in dev, use migrations in prod
   logging: process.env.NODE_ENV === "development",
-  entities: ["src/entities/**/*.ts"],
-  migrations: ["src/migrations/**/*.ts"],
+  entities: [entityPath],
+  migrations: [migrationPath],
   subscribers: [],
   ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
 });
