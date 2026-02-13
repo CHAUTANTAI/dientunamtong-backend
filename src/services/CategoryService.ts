@@ -2,6 +2,7 @@ import { CategoryRepository } from "@repositories/CategoryRepository";
 import { Category } from "@entities/Category";
 import { CreateCategoryDto, UpdateCategoryDto } from "@/types/dtos";
 import { NotFoundError, ValidationError } from "@/types/responses";
+import { deleteFile } from "@/config/supabase";
 
 export class CategoryService {
   private categoryRepository: CategoryRepository;
@@ -146,7 +147,7 @@ export class CategoryService {
   }
 
   async hardDeleteCategory(id: string, cascade: boolean = false): Promise<void> {
-    const category = await this.categoryRepository.findById(id);
+    const category = await this.categoryRepository.findById(id, ["media"]);
     
     if (!category) {
       throw new NotFoundError(`Category with id ${id} not found`);
@@ -160,14 +161,98 @@ export class CategoryService {
       );
     }
 
-    if (cascade) {
-      const descendants = await this.categoryRepository.findChildrenOf(id);
-      for (const descendant of descendants) {
-        await this.categoryRepository.delete(descendant.id);
+    console.log(`[hardDeleteCategory] Deleting category: ${category.name} (${id})`);
+    console.log(`[hardDeleteCategory] Has children: ${hasChildren}, Cascade: ${cascade}`);
+
+    // Collect all categories to delete (recursive)
+    const getAllDescendantIds = async (parentId: string): Promise<string[]> => {
+      const directChildren = await this.categoryRepository.findByParentId(parentId);
+      let allIds: string[] = directChildren.map(c => c.id);
+      
+      // Recursively get children of children
+      for (const child of directChildren) {
+        const childDescendants = await getAllDescendantIds(child.id);
+        allIds = [...allIds, ...childDescendants];
+      }
+      
+      return allIds;
+    };
+
+    let allCategoriesToDelete: Category[] = [category];
+    
+    if (cascade && hasChildren) {
+      const descendantIds = await getAllDescendantIds(id);
+      console.log(`[hardDeleteCategory] Found ${descendantIds.length} descendant IDs:`, descendantIds);
+      
+      // Load all descendants with media relation
+      if (descendantIds.length > 0) {
+        const descendants = await this.categoryRepository.findAll({
+          where: descendantIds.map(did => ({ id: did })),
+          relations: ["media"],
+        });
+        allCategoriesToDelete = [...descendants, category];
       }
     }
 
-    await this.categoryRepository.delete(id);
+    console.log(`[hardDeleteCategory] Total categories to delete: ${allCategoriesToDelete.length}`);
+    allCategoriesToDelete.forEach(cat => 
+      console.log(`  - ${cat.name} (level: ${cat.level}, id: ${cat.id})`)
+    );
+
+    // Delete images from Supabase Storage
+    const imagePaths: string[] = [];
+    for (const cat of allCategoriesToDelete) {
+      if (cat.media?.file_url) {
+        try {
+          const url = new URL(cat.media.file_url);
+          const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)/);
+          if (pathMatch && pathMatch[1]) {
+            imagePaths.push(pathMatch[1]);
+            console.log(`  + Image to delete: ${pathMatch[1]}`);
+          }
+        } catch (error) {
+          console.error(`Failed to parse URL for category ${cat.id}:`, cat.media.file_url);
+        }
+      }
+    }
+
+    // Delete images from storage
+    if (imagePaths.length > 0) {
+      console.log(`[hardDeleteCategory] Deleting ${imagePaths.length} images from storage...`);
+      try {
+        const { error } = await deleteFile("media", imagePaths);
+        if (error) {
+          console.error("Error deleting images from storage:", error);
+        } else {
+          console.log("✓ Images deleted from storage successfully");
+        }
+      } catch (error) {
+        console.error("Failed to delete images from storage:", error);
+      }
+    }
+
+    // Delete from database - MUST delete deepest children first
+    if (cascade && allCategoriesToDelete.length > 1) {
+      const sortedToDelete = allCategoriesToDelete
+        .sort((a, b) => b.level - a.level); // Highest level (deepest) first
+      
+      console.log('[hardDeleteCategory] Delete order (by level):');
+      sortedToDelete.forEach((cat, idx) => 
+        console.log(`  ${idx + 1}. ${cat.name} (level: ${cat.level}, id: ${cat.id})`)
+      );
+      
+      for (const cat of sortedToDelete) {
+        console.log(`[hardDeleteCategory] Deleting: ${cat.name} (${cat.id})...`);
+        await this.categoryRepository.delete(cat.id);
+        console.log(`  ✓ Deleted: ${cat.name}`);
+      }
+    } else {
+      console.log(`[hardDeleteCategory] Deleting single category: ${category.name} (${id})`);
+      await this.categoryRepository.delete(id);
+      console.log(`  ✓ Deleted: ${category.name}`);
+    }
+    
+    console.log('[hardDeleteCategory] ✓ All deletions completed successfully');
   }
 
   // Tree-specific operations

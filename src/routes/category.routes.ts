@@ -189,12 +189,12 @@ adminRouter.patch(
 );
 
 /**
- * @route   DELETE /api/admin/category/:id
- * @desc    Delete category (soft delete)
+ * @route   PATCH /api/admin/category/:id/inactive
+ * @desc    Set category as inactive (soft delete)
  * @access  Private (Admin)
  */
-adminRouter.delete(
-  "/:id",
+adminRouter.patch(
+  "/:id/inactive",
   authenticate,
   authorize(UserRole.ADMIN),
   validate(categoryIdValidator),
@@ -203,7 +203,7 @@ adminRouter.delete(
 
 /**
  * @route   DELETE /api/admin/category/:id/permanent
- * @desc    Permanently delete category
+ * @desc    Permanently delete category (hard delete)
  * @access  Private (Admin)
  */
 adminRouter.delete(
