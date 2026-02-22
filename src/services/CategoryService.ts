@@ -16,7 +16,7 @@ export class CategoryService {
       return await this.categoryRepository.findActive();
     }
     return await this.categoryRepository.findAll({
-      order: { sort_order: "ASC", created_at: "DESC" },
+      order: { name: "ASC" },
       relations: ["media", "parent"],
     });
   }

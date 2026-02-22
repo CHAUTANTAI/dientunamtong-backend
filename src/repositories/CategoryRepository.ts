@@ -15,7 +15,7 @@ export class CategoryRepository extends BaseRepository<Category> {
   async findActive(): Promise<Category[]> {
     return await this.repository.find({
       where: { is_active: true },
-      order: { sort_order: "ASC", name: "ASC" },
+      order: { name: "ASC" },
       relations: ["media"],
     });
   }
@@ -38,7 +38,7 @@ export class CategoryRepository extends BaseRepository<Category> {
   async findRootCategories(): Promise<Category[]> {
     return await this.repository.find({
       where: { parent_id: IsNull(), is_active: true },
-      order: { sort_order: "ASC", name: "ASC" },
+      order: { name: "ASC" },
       relations: ["media"],
     });
   }
@@ -47,7 +47,7 @@ export class CategoryRepository extends BaseRepository<Category> {
     const where = parentId ? { parent_id: parentId } : { parent_id: IsNull() };
     return await this.repository.find({
       where,
-      order: { sort_order: "ASC", name: "ASC" },
+      order: { name: "ASC" },
       relations: ["media"],
     });
   }
@@ -184,8 +184,7 @@ export class CategoryRepository extends BaseRepository<Category> {
         "(LOWER(category.name) LIKE LOWER(:searchKey) OR LOWER(category.description) LIKE LOWER(:searchKey))",
         { searchKey: `%${searchKey}%` }
       )
-      .orderBy("category.sort_order", "ASC")
-      .addOrderBy("category.name", "ASC")
+      .orderBy("category.name", "ASC")
       .getMany();
   }
 
