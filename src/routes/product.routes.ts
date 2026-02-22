@@ -206,6 +206,58 @@ adminRouter.put(
   productController.updateProductCategories
 );
 
+// ============= Media Management Routes =============
+
+/**
+ * @route   GET /api/admin/product/:id/media
+ * @desc    Get all media for a product
+ * @access  Private (Admin)
+ */
+adminRouter.get(
+  "/:id/media",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate(productIdValidator),
+  productController.getProductMedia
+);
+
+/**
+ * @route   POST /api/admin/product/:id/media
+ * @desc    Add media to product (max 9 images + 1 video)
+ * @access  Private (Admin)
+ */
+adminRouter.post(
+  "/:id/media",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate(productIdValidator),
+  productController.addProductMedia
+);
+
+/**
+ * @route   DELETE /api/admin/product/media/:mediaId
+ * @desc    Remove media from product
+ * @access  Private (Admin)
+ */
+adminRouter.delete(
+  "/media/:mediaId",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  productController.removeProductMedia
+);
+
+/**
+ * @route   PATCH /api/admin/product/media/:mediaId/sort-order
+ * @desc    Update media sort order
+ * @access  Private (Admin)
+ */
+adminRouter.patch(
+  "/media/:mediaId/sort-order",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  productController.updateMediaSortOrder
+);
+
 export default router;
 export { adminRouter };
 

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ProductService } from "@services/ProductService";
-import { CreateProductDto, UpdateProductDto, ProductFilterDto } from "@/types/dtos";
+import { CreateProductDto, UpdateProductDto, ProductFilterDto, CreateMediaDto } from "@/types/dtos";
 import { ApiResponse, successResponse } from "@/types/responses";
 
 export class ProductController {
@@ -279,6 +279,83 @@ export class ProductController {
 
       res.json(
         successResponse(result, "Products by category retrieved successfully")
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // ============= Media Management =============
+
+  addProductMedia = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const mediaDto: CreateMediaDto = req.body;
+
+      const media = await this.productService.addProductMedia(id, mediaDto);
+
+      res
+        .status(201)
+        .json(successResponse(media, "Media added to product successfully"));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  removeProductMedia = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { mediaId } = req.params;
+
+      await this.productService.removeProductMedia(mediaId);
+
+      res.json(successResponse(null, "Media removed successfully"));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateMediaSortOrder = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { mediaId } = req.params;
+      const { sort_order } = req.body;
+
+      const media = await this.productService.updateMediaSortOrder(
+        mediaId,
+        sort_order
+      );
+
+      res.json(successResponse(media, "Media sort order updated successfully"));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getProductMedia = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      const media = await this.productService.getProductMedia(id);
+
+      res.json(
+        successResponse(media, "Product media retrieved successfully", {
+          count: media.length,
+        })
       );
     } catch (error) {
       next(error);

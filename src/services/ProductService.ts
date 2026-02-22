@@ -2,8 +2,10 @@ import { ProductRepository } from "@repositories/ProductRepository";
 import { MediaRepository } from "@repositories/MediaRepository";
 import { CategoryRepository } from "@repositories/CategoryRepository";
 import { Product } from "@entities/Product";
-import { CreateProductDto, UpdateProductDto, ProductFilterDto } from "@/types/dtos";
+import { Media, MediaType } from "@entities/Media";
+import { CreateProductDto, UpdateProductDto, ProductFilterDto, CreateMediaDto } from "@/types/dtos";
 import { NotFoundError, ValidationError } from "@/types/responses";
+import { deleteFile } from "@/config/supabase";
 
 export class ProductService {
   private productRepository: ProductRepository;
@@ -153,15 +155,47 @@ export class ProductService {
   }
 
   async hardDeleteProduct(id: string): Promise<void> {
-    const product = await this.productRepository.findById(id);
+    const product = await this.productRepository.findByIdWithRelations(id);
     
     if (!product) {
       throw new NotFoundError(`Product with id ${id} not found`);
     }
 
-    // Delete associated media
+    // Delete media files from Supabase Storage
+    if (product.media && product.media.length > 0) {
+      const imagePaths: string[] = [];
+      
+      for (const media of product.media) {
+        if (media.file_url) {
+          try {
+            const url = new URL(media.file_url, 'http://dummy.com');
+            const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)/);
+            if (pathMatch && pathMatch[1]) {
+              imagePaths.push(pathMatch[1]);
+            }
+          } catch (error) {
+            console.error(`Failed to parse URL for media ${media.id}:`, media.file_url);
+          }
+        }
+      }
+
+      // Delete files from storage
+      if (imagePaths.length > 0) {
+        try {
+          const { error } = await deleteFile("media", imagePaths);
+          if (error) {
+            console.error("Error deleting media files from storage:", error);
+          }
+        } catch (error) {
+          console.error("Failed to delete media files:", error);
+        }
+      }
+    }
+
+    // Delete associated media records (CASCADE will handle this, but explicit is better)
     await this.mediaRepository.deleteByProductId(id);
 
+    // Delete product
     await this.productRepository.delete(id);
   }
 
@@ -238,7 +272,112 @@ export class ProductService {
     };
   }
 
-  // Helper methods
+  // ============= Media Management =============
+  
+  /**
+   * Add media to product (with validation: max 9 images + 1 video = 10 total)
+   */
+  async addProductMedia(productId: string, mediaDto: CreateMediaDto): Promise<Media> {
+    const product = await this.productRepository.findByIdWithRelations(productId);
+    
+    if (!product) {
+      throw new NotFoundError(`Product with id ${productId} not found`);
+    }
+
+    // Validate media limits
+    const existingMedia = product.media || [];
+    const videoCount = existingMedia.filter(m => m.media_type === MediaType.VIDEO).length;
+    const imageCount = existingMedia.filter(m => m.media_type === MediaType.IMAGE).length;
+
+    // Check if adding video
+    if (mediaDto.media_type === MediaType.VIDEO || mediaDto.mime_type?.startsWith('video/')) {
+      if (videoCount >= 1) {
+        throw new ValidationError("Product can only have 1 video. Please remove existing video first.");
+      }
+      mediaDto.media_type = MediaType.VIDEO;
+    } else {
+      // Default to image
+      mediaDto.media_type = MediaType.IMAGE;
+    }
+
+    // Check total media count
+    if (existingMedia.length >= 10) {
+      throw new ValidationError("Product can have maximum 10 media files (9 images + 1 video).");
+    }
+
+    // Check image count if adding image
+    if (mediaDto.media_type === MediaType.IMAGE && imageCount >= 9 && videoCount > 0) {
+      throw new ValidationError("Product already has 9 images and 1 video (maximum limit).");
+    }
+
+    // Set product_id
+    mediaDto.product_id = productId;
+
+    // Create media
+    const media = await this.mediaRepository.create(mediaDto);
+
+    return media;
+  }
+
+  /**
+   * Remove media from product (and delete from Supabase Storage)
+   */
+  async removeProductMedia(mediaId: string): Promise<void> {
+    const media = await this.mediaRepository.findById(mediaId);
+    
+    if (!media) {
+      throw new NotFoundError(`Media with id ${mediaId} not found`);
+    }
+
+    // Delete file from Supabase Storage
+    if (media.file_url) {
+      try {
+        const url = new URL(media.file_url, 'http://dummy.com');
+        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)/);
+        
+        if (pathMatch && pathMatch[1]) {
+          const { error } = await deleteFile("media", [pathMatch[1]]);
+          if (error) {
+            console.error("Error deleting file from storage:", error);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to delete file:", error);
+      }
+    }
+
+    // Delete media record
+    await this.mediaRepository.delete(mediaId);
+  }
+
+  /**
+   * Update media sort order
+   */
+  async updateMediaSortOrder(mediaId: string, sortOrder: number): Promise<Media> {
+    const media = await this.mediaRepository.findById(mediaId);
+    
+    if (!media) {
+      throw new NotFoundError(`Media with id ${mediaId} not found`);
+    }
+
+    const updated = await this.mediaRepository.update(mediaId, { sort_order: sortOrder });
+    
+    if (!updated) {
+      throw new Error("Failed to update media sort order");
+    }
+
+    return updated;
+  }
+
+  /**
+   * Get all media for a product
+   */
+  async getProductMedia(productId: string): Promise<Media[]> {
+    return await this.mediaRepository.findByProductId(productId);
+  }
+
+  // ============= Helper Methods =============
+  
   private generateSlug(name: string): string {
     return name
       .toLowerCase()
