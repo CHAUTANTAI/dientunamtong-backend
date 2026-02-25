@@ -79,17 +79,8 @@ router.get(
 );
 
 // ============= Admin Routes =============
-/**
- * @route   GET /api/admin/product
- * @desc    Get all products (including inactive)
- * @access  Private (Admin)
- */
-adminRouter.get(
-  "/",
-  authenticate,
-  authorize(UserRole.ADMIN),
-  productController.getAllProducts
-);
+
+// ============= Specific routes FIRST (most specific to least specific) =============
 
 /**
  * @route   GET /api/admin/product/featured
@@ -115,17 +106,78 @@ adminRouter.get(
   productController.getAllTags
 );
 
+// ============= Media Management Routes =============
+
 /**
- * @route   GET /api/admin/product/:id
- * @desc    Get product by ID
+ * @route   GET /api/admin/product/:id/media
+ * @desc    Get all media for a product
  * @access  Private (Admin)
  */
 adminRouter.get(
-  "/:id",
+  "/:id/media",
   authenticate,
   authorize(UserRole.ADMIN),
   validate(productIdValidator),
-  productController.getProductById
+  productController.getProductMedia
+);
+
+/**
+ * @route   POST /api/admin/product/:id/media
+ * @desc    Add media to product (max 9 images + 1 video)
+ * @access  Private (Admin)
+ */
+adminRouter.post(
+  "/:id/media",
+  (req, res, next) => {
+    console.log("🎯 POST /:id/media route HIT!", {
+      params: req.params,
+      body: req.body,
+      path: req.path,
+      url: req.url,
+    });
+    next();
+  },
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate(productIdValidator),
+  productController.addProductMedia
+);
+
+/**
+ * @route   DELETE /api/admin/product/media/:mediaId
+ * @desc    Remove media from product
+ * @access  Private (Admin)
+ */
+adminRouter.delete(
+  "/media/:mediaId",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  productController.removeProductMedia
+);
+
+/**
+ * @route   PATCH /api/admin/product/media/:mediaId/sort-order
+ * @desc    Update media sort order
+ * @access  Private (Admin)
+ */
+adminRouter.patch(
+  "/media/:mediaId/sort-order",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  productController.updateMediaSortOrder
+);
+
+/**
+ * @route   PUT /api/admin/product/:id/category
+ * @desc    Update product categories
+ * @access  Private (Admin)
+ */
+adminRouter.put(
+  "/:id/category",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate(productCategoriesValidator),
+  productController.updateProductCategories
 );
 
 /**
@@ -139,6 +191,46 @@ adminRouter.get(
   authorize(UserRole.ADMIN),
   validate(productIdValidator),
   productController.getRelatedProducts
+);
+
+/**
+ * @route   DELETE /api/admin/product/:id/permanent
+ * @desc    Permanently delete product
+ * @access  Private (Admin)
+ */
+adminRouter.delete(
+  "/:id/permanent",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate(productIdValidator),
+  productController.hardDeleteProduct
+);
+
+// ============= Generic Product CRUD Routes (LAST) =============
+
+/**
+ * @route   GET /api/admin/product
+ * @desc    Get all products (including inactive)
+ * @access  Private (Admin)
+ */
+adminRouter.get(
+  "/",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  productController.getAllProducts
+);
+
+/**
+ * @route   GET /api/admin/product/:id
+ * @desc    Get product by ID
+ * @access  Private (Admin)
+ */
+adminRouter.get(
+  "/:id",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate(productIdValidator),
+  productController.getProductById
 );
 
 /**
@@ -178,84 +270,6 @@ adminRouter.delete(
   authorize(UserRole.ADMIN),
   validate(productIdValidator),
   productController.deleteProduct
-);
-
-/**
- * @route   DELETE /api/admin/product/:id/permanent
- * @desc    Permanently delete product
- * @access  Private (Admin)
- */
-adminRouter.delete(
-  "/:id/permanent",
-  authenticate,
-  authorize(UserRole.ADMIN),
-  validate(productIdValidator),
-  productController.hardDeleteProduct
-);
-
-/**
- * @route   PUT /api/admin/product/:id/category
- * @desc    Update product categories
- * @access  Private (Admin)
- */
-adminRouter.put(
-  "/:id/category",
-  authenticate,
-  authorize(UserRole.ADMIN),
-  validate(productCategoriesValidator),
-  productController.updateProductCategories
-);
-
-// ============= Media Management Routes =============
-
-/**
- * @route   GET /api/admin/product/:id/media
- * @desc    Get all media for a product
- * @access  Private (Admin)
- */
-adminRouter.get(
-  "/:id/media",
-  authenticate,
-  authorize(UserRole.ADMIN),
-  validate(productIdValidator),
-  productController.getProductMedia
-);
-
-/**
- * @route   POST /api/admin/product/:id/media
- * @desc    Add media to product (max 9 images + 1 video)
- * @access  Private (Admin)
- */
-adminRouter.post(
-  "/:id/media",
-  authenticate,
-  authorize(UserRole.ADMIN),
-  validate(productIdValidator),
-  productController.addProductMedia
-);
-
-/**
- * @route   DELETE /api/admin/product/media/:mediaId
- * @desc    Remove media from product
- * @access  Private (Admin)
- */
-adminRouter.delete(
-  "/media/:mediaId",
-  authenticate,
-  authorize(UserRole.ADMIN),
-  productController.removeProductMedia
-);
-
-/**
- * @route   PATCH /api/admin/product/media/:mediaId/sort-order
- * @desc    Update media sort order
- * @access  Private (Admin)
- */
-adminRouter.patch(
-  "/media/:mediaId/sort-order",
-  authenticate,
-  authorize(UserRole.ADMIN),
-  productController.updateMediaSortOrder
 );
 
 export default router;

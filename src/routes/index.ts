@@ -8,6 +8,12 @@ import mediaRoutes from "./media.routes";
 
 const router = Router();
 
+// Debug logging
+router.use((req, res, next) => {
+  console.log(`📍 Request: ${req.method} ${req.path}`);
+  next();
+});
+
 // Public routes
 router.use("/auth", authRoutes);
 router.use("/product", productRoutes);
@@ -16,7 +22,11 @@ router.use("/contact", contactRoutes);
 router.use("/profile", profileRoutes);
 
 // Admin routes
-router.use("/admin/product", productAdminRouter);
+console.log("🔧 Mounting admin routes...");
+router.use("/admin/product", (req, res, next) => {
+  console.log(`🎯 Admin product route: ${req.method} ${req.path}`);
+  next();
+}, productAdminRouter);
 router.use("/admin/category", categoryAdminRouter);
 router.use("/admin/contact", contactAdminRouter);
 router.use("/admin/profile", profileAdminRouter);

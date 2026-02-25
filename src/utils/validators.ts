@@ -24,11 +24,9 @@ export const createProductValidator = [
     .isLength({ max: 255 })
     .withMessage("Product name must not exceed 255 characters"),
   body("price")
-    .optional()
-    .isNumeric()
-    .withMessage("Price must be a number")
-    .custom((value) => value >= 0)
-    .withMessage("Price must be non-negative"),
+    .optional({ values: "falsy" }) // Allow null, undefined, empty string, 0
+    .isFloat({ min: 0 })
+    .withMessage("Price must be a non-negative number"),
   body("short_description")
     .optional()
     .isLength({ max: 255 })
