@@ -322,6 +322,22 @@ export class ProductController {
     }
   };
 
+  removeAllProductMedia = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      await this.productService.removeAllProductMedia(id);
+
+      res.json(successResponse(null, "All media removed successfully"));
+    } catch (error) {
+      next(error);
+    }
+  };
+
   updateMediaSortOrder = async (
     req: Request,
     res: Response,

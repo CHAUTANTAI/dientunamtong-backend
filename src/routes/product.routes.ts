@@ -144,6 +144,19 @@ adminRouter.post(
 );
 
 /**
+ * @route   DELETE /api/admin/product/:id/media/all
+ * @desc    Remove all media from product
+ * @access  Private (Admin)
+ */
+adminRouter.delete(
+  "/:id/media/all",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate(productIdValidator),
+  productController.removeAllProductMedia
+);
+
+/**
  * @route   DELETE /api/admin/product/media/:mediaId
  * @desc    Remove media from product
  * @access  Private (Admin)

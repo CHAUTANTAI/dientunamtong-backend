@@ -161,42 +161,21 @@ export class ProductService {
       throw new NotFoundError(`Product with id ${id} not found`);
     }
 
-    // Delete media files from Supabase Storage
-    if (product.media && product.media.length > 0) {
-      const imagePaths: string[] = [];
-      
-      for (const media of product.media) {
-        if (media.file_url) {
-          try {
-            const url = new URL(media.file_url, 'http://dummy.com');
-            const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)/);
-            if (pathMatch && pathMatch[1]) {
-              imagePaths.push(pathMatch[1]);
-            }
-          } catch (error) {
-            console.error(`Failed to parse URL for media ${media.id}:`, media.file_url);
-          }
-        }
-      }
-
-      // Delete files from storage
-      if (imagePaths.length > 0) {
-        try {
-          const { error } = await deleteFile("media", imagePaths);
-          if (error) {
-            console.error("Error deleting media files from storage:", error);
-          }
-        } catch (error) {
-          console.error("Failed to delete media files:", error);
-        }
-      }
+    // Delete all media files using removeAllProductMedia
+    // This handles both database records and Supabase storage
+    console.log(`Starting to delete all media for product ${id}...`);
+    try {
+      await this.removeAllProductMedia(id);
+      console.log(`✅ Successfully deleted all media for product ${id}`);
+    } catch (error) {
+      console.error(`❌ Failed to delete media for product ${id}:`, error);
+      // Continue with product deletion even if media deletion fails
     }
 
-    // Delete associated media records (CASCADE will handle this, but explicit is better)
-    await this.mediaRepository.deleteByProductId(id);
-
-    // Delete product
+    // Delete product (CASCADE will handle junction tables)
+    console.log(`Deleting product ${id} from database...`);
     await this.productRepository.delete(id);
+    console.log(`✅ Product ${id} deleted successfully`);
   }
 
   async updateProductCategories(
@@ -320,6 +299,36 @@ export class ProductService {
   }
 
   /**
+   * Remove all media from product (and delete from Supabase Storage)
+   */
+  async removeAllProductMedia(productId: string): Promise<void> {
+    const product = await this.productRepository.findByIdWithRelations(productId);
+    
+    if (!product) {
+      throw new NotFoundError(`Product with id ${productId} not found`);
+    }
+
+    const media = product.media || [];
+
+    if (media.length === 0) {
+      return; // Nothing to delete
+    }
+
+    console.log(`Removing ${media.length} media files for product ${productId}`);
+
+    // Delete all media files
+    for (const mediaFile of media) {
+      try {
+        await this.removeProductMedia(mediaFile.id);
+        console.log(`Deleted media: ${mediaFile.id}`);
+      } catch (error) {
+        console.error(`Failed to delete media ${mediaFile.id}:`, error);
+        // Continue deleting other files even if one fails
+      }
+    }
+  }
+
+  /**
    * Remove media from product (and delete from Supabase Storage)
    */
   async removeProductMedia(mediaId: string): Promise<void> {
@@ -332,14 +341,17 @@ export class ProductService {
     // Delete file from Supabase Storage
     if (media.file_url) {
       try {
-        const url = new URL(media.file_url, 'http://dummy.com');
-        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)/);
+        // Remove leading slash if present to get clean path
+        const cleanPath = media.file_url.startsWith('/') 
+          ? media.file_url.slice(1) 
+          : media.file_url;
         
-        if (pathMatch && pathMatch[1]) {
-          const { error } = await deleteFile("media", [pathMatch[1]]);
-          if (error) {
-            console.error("Error deleting file from storage:", error);
-          }
+        console.log(`Deleting file from Supabase: ${cleanPath}`);
+        const { error } = await deleteFile("content", [cleanPath]);
+        if (error) {
+          console.error("Error deleting file from storage:", error);
+        } else {
+          console.log(`File deleted successfully: ${cleanPath}`);
         }
       } catch (error) {
         console.error("Failed to delete file:", error);
