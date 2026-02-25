@@ -338,6 +338,11 @@ export class ProductService {
       throw new NotFoundError(`Media with id ${mediaId} not found`);
     }
 
+    console.log('🔍 Media object:', JSON.stringify(media, null, 2));
+    console.log('🔍 file_url:', media.file_url);
+    console.log('🔍 file_url type:', typeof media.file_url);
+    console.log('🔍 file_url truthy:', !!media.file_url);
+
     // Delete file from Supabase Storage
     if (media.file_url) {
       try {
