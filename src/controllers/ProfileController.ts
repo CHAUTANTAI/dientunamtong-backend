@@ -94,5 +94,47 @@ export class ProfileController {
       next(error);
     }
   };
+
+  getMaxBanners = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const maxBanners = await this.profileService.getMaxBanners();
+
+      const response: ApiResponse = {
+        success: true,
+        data: { max_banners: maxBanners },
+        statusCode: 200,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateMaxBanners = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { max_banners } = req.body;
+      const result = await this.profileService.updateMaxBanners(max_banners);
+
+      const response: ApiResponse = {
+        success: true,
+        data: result,
+        message: "Max banners updated successfully",
+        statusCode: 200,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 

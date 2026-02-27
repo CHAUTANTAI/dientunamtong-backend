@@ -58,6 +58,35 @@ adminRouter.put(
   profileController.updatePassword
 );
 
+/**
+ * @route   GET /api/admin/profile/max-banners
+ * @desc    Get max banners setting
+ * @access  Private (Admin)
+ */
+adminRouter.get(
+  "/max-banners",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  profileController.getMaxBanners
+);
+
+/**
+ * @route   PUT /api/admin/profile/max-banners
+ * @desc    Update max banners setting
+ * @access  Private (Admin)
+ */
+adminRouter.put(
+  "/max-banners",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validate([
+    require('express-validator').body('max_banners')
+      .isInt({ min: 1, max: 20 })
+      .withMessage('Max banners must be between 1 and 20')
+  ]),
+  profileController.updateMaxBanners
+);
+
 export default router;
 export { adminRouter };
 

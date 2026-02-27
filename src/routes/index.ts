@@ -5,6 +5,7 @@ import categoryRoutes, { adminRouter as categoryAdminRouter } from "./category.r
 import contactRoutes, { adminRouter as contactAdminRouter } from "./contact.routes";
 import profileRoutes, { adminRouter as profileAdminRouter } from "./profile.routes";
 import mediaRoutes from "./media.routes";
+import bannerRoutes from "./bannerRoutes";
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.use("/admin/category", categoryAdminRouter);
 router.use("/admin/contact", contactAdminRouter);
 router.use("/admin/profile", profileAdminRouter);
 router.use("/admin/media", mediaRoutes);
+router.use("/admin/banner", bannerRoutes);
 
 export default router;
 

@@ -89,5 +89,42 @@ export class ProfileService {
       password: hashedPassword,
     } as any);
   }
+
+  async getMaxBanners(): Promise<number> {
+    const profile = await this.profileRepository.findActiveProfile();
+    
+    if (!profile) {
+      throw new NotFoundError("Profile not found");
+    }
+
+    return profile.max_banners;
+  }
+
+  async updateMaxBanners(maxBanners: number): Promise<{ max_banners: number; current_count: number }> {
+    const profile = await this.profileRepository.findActiveProfile();
+    
+    if (!profile) {
+      throw new NotFoundError("Profile not found");
+    }
+
+    // Import Banner repository to check current count
+    const { AppDataSource } = await import("@/config/database");
+    const { Banner } = await import("@entities/Banner");
+    const bannerRepository = AppDataSource.getRepository(Banner);
+    
+    const currentCount = await bannerRepository.count();
+
+    // Validate: cannot set max_banners below current count
+    if (maxBanners < currentCount) {
+      throw new ValidationError(
+        `Cannot set max banners to ${maxBanners}. Current banner count is ${currentCount}. Please delete banners first.`
+      );
+    }
+
+    // Update max_banners
+    await this.profileRepository.update(profile.id, { max_banners: maxBanners } as any);
+
+    return { max_banners: maxBanners, current_count: currentCount };
+  }
 }
 

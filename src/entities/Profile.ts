@@ -35,6 +35,9 @@ export class Profile {
   @Column({ type: "varchar", length: 500, nullable: true })
   logo?: string;
 
+  @Column({ type: "int", default: 6 })
+  max_banners!: number;
+
   // Authentication fields
   @Column({ type: "varchar", length: 100, unique: true })
   username!: string;
