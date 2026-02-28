@@ -8,7 +8,7 @@ export const getSystemInfo = async (req: Request, res: Response): Promise<void> 
     
     const profile = await profileRepository.findOne({
       where: { is_active: true },
-      select: ['company_name', 'phone', 'email', 'address', 'logo', 'about_us', 'map_latitude', 'map_longitude']
+      select: ['company_name', 'phone', 'email', 'address', 'logo', 'about_us', 'google_maps_embed', 'business_hours']
     });
 
     if (!profile) {
@@ -28,8 +28,8 @@ export const getSystemInfo = async (req: Request, res: Response): Promise<void> 
         email: profile.email,
         address: profile.address,
         about_us: profile.about_us,
-        map_latitude: profile.map_latitude,
-        map_longitude: profile.map_longitude,
+        google_maps_embed: profile.google_maps_embed,
+        business_hours: profile.business_hours,
       },
     });
   } catch (error) {

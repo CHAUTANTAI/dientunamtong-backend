@@ -38,11 +38,11 @@ export class Profile {
   @Column({ type: "text", nullable: true })
   about_us?: string;
 
-  @Column({ type: "decimal", precision: 10, scale: 7, nullable: true })
-  map_latitude?: number;
+  @Column({ type: "text", nullable: true })
+  google_maps_embed?: string;
 
-  @Column({ type: "decimal", precision: 10, scale: 7, nullable: true })
-  map_longitude?: number;
+  @Column({ type: "text", nullable: true })
+  business_hours?: string;
 
   @Column({ type: "int", default: 6 })
   max_banners!: number;
