@@ -6,6 +6,9 @@ import contactRoutes, { adminRouter as contactAdminRouter } from "./contact.rout
 import profileRoutes, { adminRouter as profileAdminRouter } from "./profile.routes";
 import mediaRoutes from "./media.routes";
 import bannerRoutes from "./bannerRoutes";
+import publicBannerRoutes from "./publicBannerRoutes";
+import publicCategoryRoutes from "./publicCategoryRoutes";
+import publicProductRoutes from "./publicProductRoutes";
 
 const router = Router();
 
@@ -22,6 +25,11 @@ router.use("/category", categoryRoutes);
 router.use("/contact", contactRoutes);
 router.use("/profile", profileRoutes);
 
+// Public API routes (no auth required)
+router.use("/public/banner", publicBannerRoutes);
+router.use("/public/category", publicCategoryRoutes);
+router.use("/public/product", publicProductRoutes);
+
 // Admin routes
 console.log("🔧 Mounting admin routes...");
 router.use("/admin/product", (req, res, next) => {
@@ -35,4 +43,5 @@ router.use("/admin/media", mediaRoutes);
 router.use("/admin/banner", bannerRoutes);
 
 export default router;
+
 
