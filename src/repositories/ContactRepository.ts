@@ -17,5 +17,18 @@ export class ContactRepository extends BaseRepository<Contact> {
     await this.repository.update(id, { status });
     return await this.findById(id);
   }
+
+  async countByStatus(status: ContactStatus): Promise<number> {
+    return await this.repository.count({
+      where: { status },
+    });
+  }
+
+  async findAllWithProduct(): Promise<Contact[]> {
+    return await this.repository.find({
+      relations: ["product"],
+      order: { created_at: "DESC" },
+    });
+  }
 }
 

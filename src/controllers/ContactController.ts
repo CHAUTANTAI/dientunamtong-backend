@@ -124,5 +124,25 @@ export class ContactController {
       next(error);
     }
   };
+
+  getUnreadCount = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const count = await this.contactService.getUnreadCount();
+
+      const response: ApiResponse = {
+        success: true,
+        data: { count },
+        statusCode: 200,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 

@@ -11,9 +11,7 @@ export class ContactService {
   }
 
   async getAllContacts(): Promise<Contact[]> {
-    return await this.contactRepository.findAll({
-      order: { created_at: "DESC" },
-    });
+    return await this.contactRepository.findAllWithProduct();
   }
 
   async getContactById(id: string): Promise<Contact> {
@@ -72,6 +70,10 @@ export class ContactService {
     }
 
     await this.contactRepository.delete(id);
+  }
+
+  async getUnreadCount(): Promise<number> {
+    return await this.contactRepository.countByStatus(ContactStatus.NEW);
   }
 }
 

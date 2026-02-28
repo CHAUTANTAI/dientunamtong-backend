@@ -22,6 +22,18 @@ router.post("/", validate(createContactValidator), contactController.createConta
 
 // ============= Admin Routes =============
 /**
+ * @route   GET /api/admin/contact/unread-count
+ * @desc    Get unread contact count
+ * @access  Private (Admin)
+ */
+adminRouter.get(
+  "/unread-count",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  contactController.getUnreadCount
+);
+
+/**
  * @route   GET /api/admin/contact
  * @desc    Get all contacts
  * @access  Private (Admin)
