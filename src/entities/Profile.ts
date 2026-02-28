@@ -35,6 +35,15 @@ export class Profile {
   @Column({ type: "varchar", length: 500, nullable: true })
   logo?: string;
 
+  @Column({ type: "text", nullable: true })
+  about_us?: string;
+
+  @Column({ type: "decimal", precision: 10, scale: 7, nullable: true })
+  map_latitude?: number;
+
+  @Column({ type: "decimal", precision: 10, scale: 7, nullable: true })
+  map_longitude?: number;
+
   @Column({ type: "int", default: 6 })
   max_banners!: number;
 

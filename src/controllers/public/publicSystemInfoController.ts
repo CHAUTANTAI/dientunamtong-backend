@@ -8,7 +8,7 @@ export const getSystemInfo = async (req: Request, res: Response): Promise<void> 
     
     const profile = await profileRepository.findOne({
       where: { is_active: true },
-      select: ['company_name', 'phone', 'email', 'address', 'logo']
+      select: ['company_name', 'phone', 'email', 'address', 'logo', 'about_us', 'map_latitude', 'map_longitude']
     });
 
     if (!profile) {
@@ -27,6 +27,9 @@ export const getSystemInfo = async (req: Request, res: Response): Promise<void> 
         phone: profile.phone,
         email: profile.email,
         address: profile.address,
+        about_us: profile.about_us,
+        map_latitude: profile.map_latitude,
+        map_longitude: profile.map_longitude,
       },
     });
   } catch (error) {
