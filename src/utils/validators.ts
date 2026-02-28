@@ -114,6 +114,13 @@ export const createContactValidator = [
     .withMessage("Name is required")
     .isLength({ max: 255 })
     .withMessage("Name must not exceed 255 characters"),
+  body("email")
+    .optional({ values: "falsy" })
+    .trim()
+    .isEmail()
+    .withMessage("Invalid email format")
+    .isLength({ max: 255 })
+    .withMessage("Email must not exceed 255 characters"),
   body("phone")
     .trim()
     .notEmpty()
@@ -128,6 +135,10 @@ export const createContactValidator = [
     .optional()
     .isLength({ max: 2000 })
     .withMessage("Message must not exceed 2000 characters"),
+  body("product_id")
+    .optional({ values: "falsy" })
+    .isUUID()
+    .withMessage("Invalid product ID"),
 ];
 
 export const updateContactValidator = [

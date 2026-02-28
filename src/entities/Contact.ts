@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from "typeorm";
+import { Product } from "./Product";
 
 export enum ContactStatus {
   NEW = "new",
@@ -21,6 +24,9 @@ export class Contact {
   @Column({ type: "varchar", length: 255 })
   name!: string;
 
+  @Column({ type: "varchar", length: 255, nullable: true })
+  email?: string;
+
   @Column({ type: "varchar", length: 50 })
   phone!: string;
 
@@ -29,6 +35,13 @@ export class Contact {
 
   @Column({ type: "text", nullable: true })
   message?: string;
+
+  @Column({ type: "uuid", nullable: true })
+  product_id?: string;
+
+  @ManyToOne(() => Product, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "product_id" })
+  product?: Product;
 
   @Column({
     type: "enum",

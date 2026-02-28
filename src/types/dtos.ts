@@ -105,9 +105,11 @@ export interface MediaFilterDto {
 // ============= Contact DTOs =============
 export interface CreateContactDto {
   name: string;
+  email?: string;
   phone: string;
   address?: string;
   message?: string;
+  product_id?: string;
 }
 
 export interface UpdateContactDto {
