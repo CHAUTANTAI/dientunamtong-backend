@@ -44,6 +44,12 @@ export class Profile {
   @Column({ type: "text", nullable: true })
   business_hours?: string;
 
+  @Column({ type: "varchar", length: 500, nullable: true })
+  facebook_url?: string;
+
+  @Column({ type: "varchar", length: 500, nullable: true })
+  tiktok_url?: string;
+
   @Column({ type: "int", default: 6 })
   max_banners!: number;
 
