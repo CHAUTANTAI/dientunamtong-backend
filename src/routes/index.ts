@@ -9,6 +9,7 @@ import bannerRoutes from "./bannerRoutes";
 import publicBannerRoutes from "./publicBannerRoutes";
 import publicCategoryRoutes from "./publicCategoryRoutes";
 import publicProductRoutes from "./publicProductRoutes";
+import publicSystemInfoRoutes from "./publicSystemInfoRoutes";
 
 const router = Router();
 
@@ -29,6 +30,7 @@ router.use("/profile", profileRoutes);
 router.use("/public/banner", publicBannerRoutes);
 router.use("/public/category", publicCategoryRoutes);
 router.use("/public/product", publicProductRoutes);
+router.use("/public/system-info", publicSystemInfoRoutes);
 
 // Admin routes
 console.log("🔧 Mounting admin routes...");
@@ -43,5 +45,3 @@ router.use("/admin/media", mediaRoutes);
 router.use("/admin/banner", bannerRoutes);
 
 export default router;
-
-
