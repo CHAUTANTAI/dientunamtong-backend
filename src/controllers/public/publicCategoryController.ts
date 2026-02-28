@@ -19,8 +19,10 @@ export const getPublicCategories = async (
       where: {
         is_active: true,
       },
+      relations: ['media'], // Load media relation
       order: {
-        sort_order: 'ASC',
+        view_count: 'DESC', // Sort by view_count descending
+        sort_order: 'ASC',  // Then by sort_order
       },
     });
 
@@ -50,6 +52,7 @@ export const getPublicCategory = async (
         id,
         is_active: true,
       },
+      relations: ['media'], // Load media relation
     });
 
     if (!category) {
@@ -58,6 +61,38 @@ export const getPublicCategory = async (
 
     return res.json(
       successResponse(category, 'Category retrieved successfully')
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Increment category view count (public)
+ * @route POST /api/public/category/:id/view
+ */
+export const incrementCategoryViewCount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    const categoryRepository = AppDataSource.getRepository(Category);
+
+    const category = await categoryRepository.findOne({
+      where: { id, is_active: true },
+    });
+
+    if (!category) {
+      throw new NotFoundError('Category not found');
+    }
+
+    // Increment view count
+    await categoryRepository.increment({ id }, 'view_count', 1);
+
+    return res.json(
+      successResponse({ view_count: category.view_count + 1 }, 'View count updated')
     );
   } catch (error) {
     next(error);

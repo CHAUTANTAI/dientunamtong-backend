@@ -42,6 +42,9 @@ export class Category {
   @Column({ type: "integer", default: 0 })
   level!: number;
 
+  @Column({ type: "integer", default: 0 })
+  view_count!: number;
+
   @Column({ type: "boolean", default: true })
   is_active!: boolean;
 

@@ -169,35 +169,87 @@ export class BannerController {
       const { id } = req.params;
       const { media_id, title, link_url, sort_order, is_active } = req.body;
 
-      const banner = await this.bannerRepository.findOne({ where: { id } });
+      console.log('📝 Update banner request:', { id, media_id, title, link_url, sort_order, is_active });
+
+      const banner = await this.bannerRepository.findOne({ 
+        where: { id },
+        relations: ['media']
+      });
       if (!banner) {
         res.status(404).json({ message: 'Banner not found' });
         return;
       }
 
-      // Verify new media exists if updating
+      console.log('📦 Current banner media_id:', banner.media_id);
+
+      // Store old media for cleanup if media_id is changing
+      let oldMedia: Media | null = null;
       if (media_id && media_id !== banner.media_id) {
-        const media = await this.mediaRepository.findOne({ where: { id: media_id } });
-        if (!media) {
+        console.log('🔄 Media is changing from', banner.media_id, 'to', media_id);
+        
+        // Verify new media exists
+        const newMedia = await this.mediaRepository.findOne({ where: { id: media_id } });
+        if (!newMedia) {
           res.status(404).json({ message: 'Media not found' });
           return;
         }
+
+        // Get old media for deletion
+        if (banner.media_id) {
+          oldMedia = await this.mediaRepository.findOne({ 
+            where: { id: banner.media_id }
+          });
+          console.log('🗑️ Old media to delete:', oldMedia?.id, oldMedia?.file_url);
+        }
+      } else {
+        console.log('ℹ️ Media not changing');
       }
 
-      // Update fields
-      if (media_id !== undefined) banner.media_id = media_id;
-      if (title !== undefined) banner.title = title || null;
-      if (link_url !== undefined) banner.link_url = link_url || null;
-      if (sort_order !== undefined) banner.sort_order = sort_order;
-      if (is_active !== undefined) banner.is_active = is_active;
+      // Build update object
+      const updateData: Partial<Banner> = {};
+      if (media_id !== undefined) updateData.media_id = media_id;
+      if (title !== undefined) updateData.title = title || null;
+      if (link_url !== undefined) updateData.link_url = link_url || null;
+      if (sort_order !== undefined) updateData.sort_order = sort_order;
+      if (is_active !== undefined) updateData.is_active = is_active;
 
-      await this.bannerRepository.save(banner);
+      console.log('💾 Updating banner with data:', updateData);
+
+      // Use QueryBuilder to force update all fields
+      await this.bannerRepository
+        .createQueryBuilder()
+        .update(Banner)
+        .set(updateData)
+        .where('id = :id', { id })
+        .execute();
+
+      console.log('✅ Banner updated successfully');
+
+      // Delete old media if it was replaced
+      if (oldMedia) {
+        try {
+          console.log('🗑️ Deleting old media from storage:', oldMedia.file_url);
+          // Delete file from Supabase Storage
+          if (oldMedia.file_url) {
+            await deleteFile('content', [oldMedia.file_url]);
+          }
+          console.log('🗑️ Deleting old media record from DB:', oldMedia.id);
+          // Delete media record from DB
+          await this.mediaRepository.remove(oldMedia);
+          console.log('✅ Old media deleted successfully');
+        } catch (error) {
+          console.warn('❌ Failed to delete old media:', error);
+          // Continue even if cleanup fails
+        }
+      }
 
       // Fetch with relations
       const updated = await this.bannerRepository.findOne({
         where: { id },
+        relations: ['media']
       });
 
+      console.log('✅ Final banner media_id:', updated?.media_id);
       res.json(updated);
     } catch (error) {
       console.error('Update banner error:', error);
@@ -212,6 +264,7 @@ export class BannerController {
 
       const banner = await this.bannerRepository.findOne({
         where: { id },
+        relations: ['media']
       });
 
       if (!banner) {
@@ -219,13 +272,29 @@ export class BannerController {
         return;
       }
 
-      // Delete banner (CASCADE will handle media via FK)
+      // Store media info before deleting banner
+      const mediaToDelete = banner.media;
+      const mediaId = banner.media_id;
+
+      // Delete banner first
       await this.bannerRepository.remove(banner);
 
-      // Delete media file from Supabase
-      if (banner.media?.file_url) {
+      // Delete media record from DB
+      if (mediaId) {
         try {
-          await deleteFile('content', [banner.media.file_url]);
+          const media = await this.mediaRepository.findOne({ where: { id: mediaId } });
+          if (media) {
+            await this.mediaRepository.remove(media);
+          }
+        } catch (error) {
+          console.warn('Failed to delete media record from DB:', error);
+        }
+      }
+
+      // Delete media file from Supabase Storage
+      if (mediaToDelete?.file_url) {
+        try {
+          await deleteFile('content', [mediaToDelete.file_url]);
         } catch (error) {
           console.warn('Failed to delete media file from Supabase:', error);
           // Continue even if file deletion fails

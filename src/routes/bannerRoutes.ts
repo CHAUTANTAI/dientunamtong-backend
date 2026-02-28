@@ -40,9 +40,9 @@ router.post(
   authorize(UserRole.ADMIN),
   validate([
     body('media_id').isUUID().withMessage('Media ID must be a valid UUID'),
-    body('title').optional().isString().isLength({ max: 255 }),
-    body('link_url').optional().isString(),
-    body('sort_order').optional().isInt({ min: 0, max: 5 }),
+    body('title').optional({ values: 'falsy' }).isString().isLength({ max: 255 }),
+    body('link_url').optional({ values: 'falsy' }).isString(),
+    body('sort_order').optional().isInt({ min: 0 }),
     body('is_active').optional().isBoolean(),
   ]),
   bannerController.createBanner
@@ -55,9 +55,9 @@ router.put(
   validate([
     param('id').isUUID(),
     body('media_id').optional().isUUID(),
-    body('title').optional().isString().isLength({ max: 255 }),
-    body('link_url').optional().isString(),
-    body('sort_order').optional().isInt({ min: 0, max: 5 }),
+    body('title').optional({ values: 'falsy' }).isString().isLength({ max: 255 }),
+    body('link_url').optional({ values: 'falsy' }).isString(),
+    body('sort_order').optional().isInt({ min: 0 }),
     body('is_active').optional().isBoolean(),
   ]),
   bannerController.updateBanner
