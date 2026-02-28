@@ -225,7 +225,7 @@ export class BannerController {
       // Delete media file from Supabase
       if (banner.media?.file_url) {
         try {
-          await deleteFile(banner.media.file_url);
+          await deleteFile('content', [banner.media.file_url]);
         } catch (error) {
           console.warn('Failed to delete media file from Supabase:', error);
           // Continue even if file deletion fails
