@@ -10,6 +10,7 @@ import publicBannerRoutes from "./publicBannerRoutes";
 import publicCategoryRoutes from "./publicCategoryRoutes";
 import publicProductRoutes from "./publicProductRoutes";
 import publicSystemInfoRoutes from "./publicSystemInfoRoutes";
+import pageSectionRoutes from "./pageSection.routes";
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.use("/public/banner", publicBannerRoutes);
 router.use("/public/category", publicCategoryRoutes);
 router.use("/public/product", publicProductRoutes);
 router.use("/public/system-info", publicSystemInfoRoutes);
+router.use(pageSectionRoutes); // Handles both /public and /admin routes
 
 // Admin routes
 console.log("🔧 Mounting admin routes...");

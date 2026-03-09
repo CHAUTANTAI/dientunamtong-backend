@@ -4,4 +4,5 @@ export { Contact, ContactStatus } from "./Contact";
 export { Profile, UserRole } from "./Profile";
 export { Media, MediaType } from "./Media";
 export { Banner } from "./Banner";
+export { PageSection } from "./PageSection";
 
