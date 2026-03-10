@@ -231,6 +231,23 @@ export class CategoryService {
       }
     }
 
+    // Delete product-category associations BEFORE deleting categories
+    const categoryIds = allCategoriesToDelete.map(c => c.id);
+    console.log(`[hardDeleteCategory] Deleting product-category associations for ${categoryIds.length} categories...`);
+    
+    try {
+      const { AppDataSource } = await import("@/config/database");
+      await AppDataSource.createQueryBuilder()
+        .delete()
+        .from("product_category")
+        .where("category_id IN (:...ids)", { ids: categoryIds })
+        .execute();
+      console.log("✓ Product-category associations deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete product-category associations:", error);
+      throw new Error("Failed to delete category associations with products");
+    }
+
     // Delete from database - MUST delete deepest children first
     if (cascade && allCategoriesToDelete.length > 1) {
       const sortedToDelete = allCategoriesToDelete

@@ -5,10 +5,9 @@ import categoryRoutes, { adminRouter as categoryAdminRouter } from "./category.r
 import contactRoutes, { adminRouter as contactAdminRouter } from "./contact.routes";
 import profileRoutes, { adminRouter as profileAdminRouter } from "./profile.routes";
 import mediaRoutes from "./media.routes";
-import bannerRoutes from "./bannerRoutes";
-import publicBannerRoutes from "./publicBannerRoutes";
 import publicCategoryRoutes from "./publicCategoryRoutes";
 import publicProductRoutes from "./publicProductRoutes";
+import publicMediaRoutes from "./publicMediaRoutes";
 import publicSystemInfoRoutes from "./publicSystemInfoRoutes";
 import pageSectionRoutes from "./pageSection.routes";
 
@@ -28,9 +27,9 @@ router.use("/contact", contactRoutes);
 router.use("/profile", profileRoutes);
 
 // Public API routes (no auth required)
-router.use("/public/banner", publicBannerRoutes);
 router.use("/public/category", publicCategoryRoutes);
 router.use("/public/product", publicProductRoutes);
+router.use("/public/media", publicMediaRoutes);
 router.use("/public/system-info", publicSystemInfoRoutes);
 router.use(pageSectionRoutes); // Handles both /public and /admin routes
 
@@ -44,6 +43,5 @@ router.use("/admin/category", categoryAdminRouter);
 router.use("/admin/contact", contactAdminRouter);
 router.use("/admin/profile", profileAdminRouter);
 router.use("/admin/media", mediaRoutes);
-router.use("/admin/banner", bannerRoutes);
 
 export default router;
