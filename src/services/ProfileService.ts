@@ -107,24 +107,11 @@ export class ProfileService {
       throw new NotFoundError("Profile not found");
     }
 
-    // Import Banner repository to check current count
-    const { AppDataSource } = await import("@/config/database");
-    const { Banner } = await import("@entities/Banner");
-    const bannerRepository = AppDataSource.getRepository(Banner);
-    
-    const currentCount = await bannerRepository.count();
+    // NOTE: Banner table removed - max_banners no longer enforced
+    // Update max_banners (kept for backwards compatibility)
+    await this.profileRepository.update(profile.id, { max_banners: maxBanners });
 
-    // Validate: cannot set max_banners below current count
-    if (maxBanners < currentCount) {
-      throw new ValidationError(
-        `Cannot set max banners to ${maxBanners}. Current banner count is ${currentCount}. Please delete banners first.`
-      );
-    }
-
-    // Update max_banners
-    await this.profileRepository.update(profile.id, { max_banners: maxBanners } as any);
-
-    return { max_banners: maxBanners, current_count: currentCount };
+    return { max_banners: maxBanners, current_count: 0 };
   }
 }
 
