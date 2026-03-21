@@ -11,7 +11,7 @@ The `page_sections` table uses JSONB for flexible content storage. This document
 CREATE TABLE page_sections (
   id UUID PRIMARY KEY,
   page_identifier VARCHAR(100),      -- 'homepage', 'about', etc.
-  section_identifier VARCHAR(100),   -- 'intro', 'banner', etc.
+  section_identifier VARCHAR(100),   -- 'banner_header', 'slider_section', etc.
   content JSONB,                     -- Section-specific content
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
@@ -35,123 +35,353 @@ CREATE TABLE page_sections (
 
 ## Section Types & Content Structure
 
-### 1. **Intro Section** (`intro`)
+### LAYOUT SECTIONS (Shared across pages)
 
-Welcome text/introduction for the page.
+#### 1. **Banner Header** (`banner_header`)
+
+Logo, banner image, and hotline numbers displayed at the top.
 
 **Content Schema:**
 ```typescript
 {
-  text: string;        // HTML or plain text content
-  title?: string;      // Optional title
-  subtitle?: string;   // Optional subtitle
+  logo_media_id?: string;          // Company logo path
+  banner_media_id?: string;        // Banner image path
+  primary_hotline?: string;        // Main phone number
+  secondary_hotline?: string;      // Secondary phone number
 }
 ```
 
 **Example:**
 ```json
 {
-  "title": "Welcome to Our Store",
-  "subtitle": "Quality motorcycle electronics since 2020",
-  "text": "<p>Chào mừng bạn đến với cửa hàng điện tử xe máy <strong>Nam Tông</strong>.</p><p>Chúng tôi chuyên cung cấp các thiết bị điện tử chất lượng cao.</p>"
+  "logo_media_id": "logos/company-logo.png",
+  "banner_media_id": "banners/main-banner.jpg",
+  "primary_hotline": "(0286) 271 3025",
+  "secondary_hotline": "0909 60 30 25"
 }
 ```
 
 ---
 
-### 2. **Banner Section** (`banner`)
+#### 2. **Mega Menu** (`mega_menu`)
 
-Carousel/slider banners managed through the banner system.
+Navigation menu with static items (categories are auto-fetched from DB).
 
 **Content Schema:**
 ```typescript
 {
-  banner_ids: string[];     // Array of banner UUIDs in display order
-  auto_play?: boolean;      // Auto-play carousel (default: true)
-  interval?: number;        // Auto-play interval in ms (default: 3000)
-  show_arrows?: boolean;    // Show prev/next arrows (default: true)
-  show_dots?: boolean;      // Show pagination dots (default: true)
+  static_items: Array<{
+    id: string;
+    label: string;
+    href: string;
+    sort_order: number;
+  }>;
 }
 ```
 
 **Example:**
 ```json
 {
-  "banner_ids": [
-    "550e8400-e29b-41d4-a716-446655440001",
-    "550e8400-e29b-41d4-a716-446655440002",
-    "550e8400-e29b-41d4-a716-446655440003"
+  "static_items": [
+    {
+      "id": "price-list",
+      "label": "Bảng giá",
+      "href": "/bang-gia",
+      "sort_order": 0
+    },
+    {
+      "id": "stickers",
+      "label": "Tem xe",
+      "href": "/tem-xe",
+      "sort_order": 1
+    },
+    {
+      "id": "videos",
+      "label": "Video",
+      "href": "/videos",
+      "sort_order": 2
+    }
+  ]
+}
+```
+
+---
+
+#### 3. **Search Slogan** (`search_slogan`)
+
+Marquee text displayed with search bar.
+
+**Content Schema:**
+```typescript
+{
+  slogan_text: string;             // Marquee text
+}
+```
+
+**Example:**
+```json
+{
+  "slogan_text": "Chuyên cung cấp phụ tùng xe máy chính hãng - Giao hàng toàn quốc"
+}
+```
+
+---
+
+#### 4. **Slider Section** (`slider_section`)
+
+Main carousel slider with mini ads.
+
+**Content Schema:**
+```typescript
+{
+  slides: Array<{
+    id: string;
+    media_id: string;        // Image path
+    link?: string;           // Optional click target
+    alt?: string;            // Alt text (deprecated)
+    sort_order: number;
+  }>;
+  mini_ads: Array<{
+    id: string;
+    media_id: string;
+    link?: string;
+    alt?: string;            // Alt text (deprecated)
+    sort_order: number;
+  }>;
+  slider_settings?: {
+    height?: number;
+    autoplay?: boolean;
+    autoplay_speed?: number;
+  };
+  mini_ad_settings?: {
+    height?: number;
+    gap?: number;
+  };
+}
+```
+
+**Example:**
+```json
+{
+  "slides": [
+    {
+      "id": "slide-1",
+      "media_id": "sliders/promo-2024.jpg",
+      "link": "/promotions/tet-2024",
+      "sort_order": 0
+    }
   ],
-  "auto_play": true,
-  "interval": 5000,
-  "show_arrows": true,
-  "show_dots": true
+  "mini_ads": [
+    {
+      "id": "ad-1",
+      "media_id": "ads/mini-ad-1.jpg",
+      "link": "/products/bi-led",
+      "sort_order": 0
+    }
+  ],
+  "slider_settings": {
+    "height": 400,
+    "autoplay": true,
+    "autoplay_speed": 3000
+  },
+  "mini_ad_settings": {
+    "height": 195,
+    "gap": 10
+  }
+}
+```
+
+---
+
+### HOMEPAGE CONTENT SECTIONS
+
+#### 5. **Trending Keywords** (`trending_keywords_section`)
+
+Search keywords section with auto/manual mode.
+
+**Content Schema:**
+```typescript
+{
+  mode: 'auto' | 'manual';         // auto: top 5 categories + top 5 products by views
+  keywords: Array<{
+    id: string;
+    text: string;                  // Display text
+    link: string;                  // Click target
+    source: 'category' | 'product'; // Source type
+    source_id: string;             // Category ID or Product ID
+    sort_order: number;
+  }>;
+}
+```
+
+**Example:**
+```json
+{
+  "mode": "manual",
+  "keywords": [
+    {
+      "id": "kw-1",
+      "text": "Bi LED",
+      "link": "/categories/bi-led",
+      "source": "category",
+      "source_id": "cat-uuid-123",
+      "sort_order": 0
+    },
+    {
+      "id": "kw-2",
+      "text": "Tem xe Winner X",
+      "link": "/products/tem-winner-x",
+      "source": "product",
+      "source_id": "prod-uuid-456",
+      "sort_order": 1
+    }
+  ]
+}
+```
+
+---
+
+#### 6. **Products Section** (`products_section`)
+
+Multi-category products display with auto/manual mode per category.
+
+**Content Schema:**
+```typescript
+{
+  categories?: Array<{
+    category_id: string;
+    mode: 'auto' | 'manual';       // auto: top 6 by views, manual: select specific
+    product_ids?: string[];        // For manual mode (max 6 products)
+  }>;                              // Max 3 categories
+}
+```
+
+**Example:**
+```json
+{
+  "categories": [
+    {
+      "category_id": "cat-bi-led",
+      "mode": "auto"
+    },
+    {
+      "category_id": "cat-tem-xe",
+      "mode": "manual",
+      "product_ids": ["prod-1", "prod-2", "prod-3"]
+    }
+  ]
 }
 ```
 
 **Notes:**
-- Banner images are managed in the `banners` table
-- `banner_ids` order determines display order
-- Invalid/deleted banner IDs are filtered out during display
+- Max 3 categories allowed
+- Each category shows 6 products
+- Auto mode: top 6 by view_count
+- Manual mode: admin selects specific products
+- Products from child categories are also included (recursive)
 
 ---
 
-### 3. **Highlight Categories** (`highlight_categories`) *(Future)*
+#### 7. **Left Sidebar** (`left_sidebar`)
 
-Featured product categories.
+Category tree menu with auto/manual mode.
 
 **Content Schema:**
 ```typescript
 {
-  title: string;            // Section title
-  limit: number;            // Max categories to display
-  mode: 'auto' | 'manual';  // Auto-select or manual
-  category_ids?: string[];  // Manual: Array of category UUIDs
-  layout?: 'grid' | 'carousel';
-  show_description?: boolean;
+  mode: 'auto' | 'manual';         // auto: top 8 by views, manual: select specific
+  category_ids?: string[];         // For manual mode (max 8 categories)
+  max_items?: number;              // Default: 8
 }
 ```
 
 **Example:**
 ```json
 {
-  "title": "Danh mục nổi bật",
-  "limit": 6,
   "mode": "auto",
-  "layout": "grid",
-  "show_description": true
+  "max_items": 8
 }
 ```
 
+**Example (Manual):**
+```json
+{
+  "mode": "manual",
+  "category_ids": ["cat-1", "cat-2", "cat-3"],
+  "max_items": 8
+}
+```
+
+**Notes:**
+- Tree selection is independent (selecting parent ≠ auto-select children)
+- Subcategories are displayed automatically for selected categories
+
 ---
 
-### 4. **Highlight Products** (`highlight_products`) *(Future)*
+#### 8. **Right Sidebar** (`right_sidebar`)
 
-Featured products.
+News items and promotional banners.
 
 **Content Schema:**
 ```typescript
 {
-  title: string;            // Section title
-  limit: number;            // Max products to display
-  mode: 'auto' | 'manual';  // Auto-select or manual
-  filter_by?: 'latest' | 'most_viewed' | 'random';
-  product_ids?: string[];   // Manual: Array of product UUIDs
-  layout?: 'grid' | 'carousel';
-  show_price?: boolean;
+  news_items: Array<{
+    id: string;
+    title: string;
+    link: string;
+    date?: string;
+    sort_order: number;
+  }>;
+  promotional_banners?: Array<{
+    id: string;
+    media_id: string;            // Image path
+    link?: string;
+    alt?: string;
+    sort_order: number;
+  }>;
 }
 ```
 
 **Example:**
 ```json
 {
-  "title": "Sản phẩm nổi bật",
-  "limit": 6,
-  "mode": "auto",
-  "filter_by": "most_viewed",
-  "layout": "grid",
-  "show_price": true
+  "news_items": [
+    {
+      "id": "news-1",
+      "title": "Ra mắt sản phẩm bi LED mới",
+      "link": "/news/bi-led-2024",
+      "date": "2024-03-01",
+      "sort_order": 0
+    }
+  ],
+  "promotional_banners": [
+    {
+      "id": "banner-1",
+      "media_id": "banners/promo-sidebar.jpg",
+      "link": "/promotions/spring-sale",
+      "sort_order": 0
+    }
+  ]
 }
+```
+
+---
+
+## Section Identifiers (Current)
+
+```typescript
+export type SectionIdentifier = 
+  // Layout sections
+  | 'banner_header'
+  | 'mega_menu'
+  | 'search_slogan'
+  | 'slider_section'
+  
+  // HomePage content sections
+  | 'trending_keywords_section'
+  | 'products_section'
+  | 'left_sidebar'
+  | 'right_sidebar';
 ```
 
 ---
@@ -172,7 +402,7 @@ GET /api/admin/page-sections/:pageIdentifier
     {
       "id": "uuid",
       "page_identifier": "homepage",
-      "section_identifier": "intro",
+      "section_identifier": "banner_header",
       "content": { ... },
       "sort_order": 0,
       "is_active": true,
@@ -183,7 +413,7 @@ GET /api/admin/page-sections/:pageIdentifier
 }
 ```
 
-#### 2. Update Page Sections
+#### 2. Update Page Sections (Batch)
 ```
 PUT /api/admin/page-sections/:pageIdentifier
 ```
@@ -193,19 +423,11 @@ PUT /api/admin/page-sections/:pageIdentifier
 {
   "sections": [
     {
-      "sectionIdentifier": "intro",
+      "sectionIdentifier": "banner_header",
       "content": {
-        "text": "Welcome text"
+        "logo_media_id": "logos/logo.png"
       },
       "sortOrder": 0,
-      "isActive": true
-    },
-    {
-      "sectionIdentifier": "banner",
-      "content": {
-        "banner_ids": ["uuid1", "uuid2"]
-      },
-      "sortOrder": 1,
       "isActive": true
     }
   ]
@@ -238,103 +460,17 @@ Returns only active sections ordered by `sort_order`.
 
 ## TypeScript Types
 
-```typescript
-// Base section interface
-interface PageSection {
-  id: string;
-  page_identifier: string;
-  section_identifier: string;
-  content: Record<string, any>;
-  sort_order: number;
-  is_active: boolean;
-  created_at: Date;
-  updated_at: Date;
-}
+See `frontend/src/types/pageSection.ts` for complete type definitions.
 
-// Content types for each section
-interface IntroContent {
-  title?: string;
-  subtitle?: string;
-  text: string;
-}
-
-interface BannerContent {
-  banner_ids: string[];
-  auto_play?: boolean;
-  interval?: number;
-  show_arrows?: boolean;
-  show_dots?: boolean;
-}
-
-interface HighlightCategoriesContent {
-  title: string;
-  limit: number;
-  mode: 'auto' | 'manual';
-  category_ids?: string[];
-  layout?: 'grid' | 'carousel';
-  show_description?: boolean;
-}
-
-interface HighlightProductsContent {
-  title: string;
-  limit: number;
-  mode: 'auto' | 'manual';
-  filter_by?: 'latest' | 'most_viewed' | 'random';
-  product_ids?: string[];
-  layout?: 'grid' | 'carousel';
-  show_price?: boolean;
-}
-```
-
----
-
-## Usage Examples
-
-### Backend: Creating Default Homepage Sections
-
-```typescript
-const sections = [
-  {
-    page_identifier: 'homepage',
-    section_identifier: 'intro',
-    content: {
-      title: 'Welcome',
-      text: '<p>Welcome to our store!</p>'
-    },
-    sort_order: 0,
-    is_active: true
-  },
-  {
-    page_identifier: 'homepage',
-    section_identifier: 'banner',
-    content: {
-      banner_ids: [],
-      auto_play: true,
-      interval: 5000
-    },
-    sort_order: 1,
-    is_active: true
-  }
-];
-```
-
-### Frontend: Rendering Sections
-
-```typescript
-// Fetch sections
-const { data: sections } = useGetPageSectionsQuery('homepage');
-
-// Render based on section_identifier
-sections?.forEach(section => {
-  switch (section.section_identifier) {
-    case 'intro':
-      return <IntroSection content={section.content} />;
-    case 'banner':
-      return <BannerSection content={section.content} />;
-    // ... more cases
-  }
-});
-```
+**Key Interfaces:**
+- `BannerHeaderContent`
+- `MegaMenuContent`
+- `SearchSloganContent`
+- `SliderContent`
+- `TrendingKeywordsContent`
+- `ProductsSectionContent`
+- `LeftSidebarContent`
+- `RightSidebarContent`
 
 ---
 
@@ -355,7 +491,8 @@ sections?.forEach(section => {
 
 4. **Sort Order:**
    - Must be non-negative integer
-   - Lower numbers display first
+   - Layout sections: 0-3
+   - Homepage content sections: 4-7
 
 ---
 
@@ -363,11 +500,12 @@ sections?.forEach(section => {
 
 1. **Content Updates:**
    - Always update multiple sections atomically using the batch update API
-   - Include unchanged sections in the update request
+   - Include all sections in the update request (even unchanged ones)
 
-2. **Banner Management:**
-   - Delete banners from `banners` table separately
-   - Update `banner_ids` in section content when reordering
+2. **Media Management:**
+   - Use Supabase public bucket for all media
+   - Store paths in content (not full URLs)
+   - Validate image dimensions before upload
 
 3. **Backward Compatibility:**
    - When adding new content fields, make them optional
@@ -384,25 +522,91 @@ sections?.forEach(section => {
 ### Initial Data Seed
 
 ```sql
--- Homepage intro section
+-- Banner Header
 INSERT INTO page_sections (id, page_identifier, section_identifier, content, sort_order, is_active)
 VALUES (
   gen_random_uuid(),
   'homepage',
-  'intro',
-  '{"title": "Chào mừng", "text": "Chào mừng đến với cửa hàng"}'::jsonb,
+  'banner_header',
+  '{"logo_media_id": "", "banner_media_id": "", "primary_hotline": "(0286) 271 3025", "secondary_hotline": "0909 60 30 25"}'::jsonb,
   0,
   true
 );
 
--- Homepage banner section  
+-- Mega Menu
 INSERT INTO page_sections (id, page_identifier, section_identifier, content, sort_order, is_active)
 VALUES (
   gen_random_uuid(),
   'homepage',
-  'banner',
-  '{"banner_ids": [], "auto_play": true, "interval": 5000}'::jsonb,
+  'mega_menu',
+  '{"static_items": []}'::jsonb,
   1,
+  true
+);
+
+-- Search Slogan
+INSERT INTO page_sections (id, page_identifier, section_identifier, content, sort_order, is_active)
+VALUES (
+  gen_random_uuid(),
+  'homepage',
+  'search_slogan',
+  '{"slogan_text": "Chuyên cung cấp phụ tùng xe máy chính hãng"}'::jsonb,
+  2,
+  true
+);
+
+-- Slider Section
+INSERT INTO page_sections (id, page_identifier, section_identifier, content, sort_order, is_active)
+VALUES (
+  gen_random_uuid(),
+  'homepage',
+  'slider_section',
+  '{"slides": [], "mini_ads": [], "slider_settings": {}, "mini_ad_settings": {}}'::jsonb,
+  3,
+  true
+);
+
+-- Trending Keywords
+INSERT INTO page_sections (id, page_identifier, section_identifier, content, sort_order, is_active)
+VALUES (
+  gen_random_uuid(),
+  'homepage',
+  'trending_keywords_section',
+  '{"mode": "auto", "keywords": []}'::jsonb,
+  4,
+  true
+);
+
+-- Products Section
+INSERT INTO page_sections (id, page_identifier, section_identifier, content, sort_order, is_active)
+VALUES (
+  gen_random_uuid(),
+  'homepage',
+  'products_section',
+  '{"categories": []}'::jsonb,
+  5,
+  true
+);
+
+-- Left Sidebar
+INSERT INTO page_sections (id, page_identifier, section_identifier, content, sort_order, is_active)
+VALUES (
+  gen_random_uuid(),
+  'homepage',
+  'left_sidebar',
+  '{"mode": "auto", "max_items": 8}'::jsonb,
+  6,
+  true
+);
+
+-- Right Sidebar
+INSERT INTO page_sections (id, page_identifier, section_identifier, content, sort_order, is_active)
+VALUES (
+  gen_random_uuid(),
+  'homepage',
+  'right_sidebar',
+  '{"news_items": [], "promotional_banners": []}'::jsonb,
+  7,
   true
 );
 ```
@@ -413,16 +617,22 @@ VALUES (
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0.0 | 2024-03-01 | Initial documentation for `intro` and `banner` sections |
+| 1.0.0 | 2024-03-01 | Initial documentation |
+| 2.0.0 | 2026-03-18 | Complete redesign: Added BannerHeader, MegaMenu, SearchSlogan, updated Products/LeftSidebar schemas |
 
 ---
 
 ## Future Enhancements
 
-- [ ] Add `highlight_categories` section
-- [ ] Add `highlight_products` section
 - [ ] Add `custom_html` section type
 - [ ] Add `testimonials` section
 - [ ] Add `newsletter` section
 - [ ] Version history for content changes
 - [ ] Content preview before publish
+- [ ] A/B testing for sections
+
+---
+
+**Document Version:** 2.0.0  
+**Last Updated:** 2026-03-18  
+**Status:** ✅ Current & Accurate
