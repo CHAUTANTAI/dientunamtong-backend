@@ -35,8 +35,8 @@ export const getPublicCategories = async (
 };
 
 /**
- * Get a single category by ID (public)
- * @route GET /api/public/category/:id
+ * Get a single category by slug (public)
+ * @route GET /api/public/category/:slug
  */
 export const getPublicCategory = async (
   req: Request,
@@ -44,12 +44,12 @@ export const getPublicCategory = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = req.params;
+    const { id: slug } = req.params; // 'id' param is actually the slug
     const categoryRepository = AppDataSource.getRepository(Category);
 
     const category = await categoryRepository.findOne({
       where: {
-        id,
+        slug,
         is_active: true,
       },
       relations: ['media'], // Load media relation
@@ -69,7 +69,7 @@ export const getPublicCategory = async (
 
 /**
  * Increment category view count (public)
- * @route POST /api/public/category/:id/view
+ * @route POST /api/public/category/:slug/view
  */
 export const incrementCategoryViewCount = async (
   req: Request,
@@ -77,11 +77,11 @@ export const incrementCategoryViewCount = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = req.params;
+    const { id: slug } = req.params; // 'id' param is actually the slug
     const categoryRepository = AppDataSource.getRepository(Category);
 
     const category = await categoryRepository.findOne({
-      where: { id, is_active: true },
+      where: { slug, is_active: true },
     });
 
     if (!category) {
@@ -89,7 +89,7 @@ export const incrementCategoryViewCount = async (
     }
 
     // Increment view count
-    await categoryRepository.increment({ id }, 'view_count', 1);
+    await categoryRepository.increment({ id: category.id }, 'view_count', 1);
 
     return res.json(
       successResponse({ view_count: category.view_count + 1 }, 'View count updated')

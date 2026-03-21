@@ -22,6 +22,16 @@ class Server {
     // CORS middleware
     this.app.use(cors());
 
+    // Response logging middleware
+    this.app.use((req, res, next) => {
+      const originalSend = res.send;
+      res.send = function (data) {
+        console.log(`✅ Response sent: ${req.method} ${req.path} - Status: ${res.statusCode}`);
+        return originalSend.call(this, data);
+      };
+      next();
+    });
+
     // API routes
     this.app.use("/api", routes);
 
