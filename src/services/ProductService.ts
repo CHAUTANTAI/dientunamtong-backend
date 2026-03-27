@@ -5,7 +5,8 @@ import { Product } from "@entities/Product";
 import { Media, MediaType } from "@entities/Media";
 import { CreateProductDto, UpdateProductDto, ProductFilterDto, CreateMediaDto } from "@/types/dtos";
 import { NotFoundError, ValidationError } from "@/types/responses";
-import { deleteFile } from "@/config/supabase";
+import { deleteFile } from "@/config/r2";
+import { extractObjectKeyFromMediaUrl } from "@/utils/storagePath";
 
 export class ProductService {
   private productRepository: ProductRepository;
@@ -162,7 +163,7 @@ export class ProductService {
     }
 
     // Delete all media files using removeAllProductMedia
-    // This handles both database records and Supabase storage
+    // This handles both database records and object storage (R2)
     console.log(`Starting to delete all media for product ${id}...`);
     try {
       await this.removeAllProductMedia(id);
@@ -329,7 +330,7 @@ export class ProductService {
   }
 
   /**
-   * Remove media from product (and delete from Supabase Storage)
+   * Remove media from product (and delete from R2)
    */
   async removeProductMedia(mediaId: string): Promise<void> {
     const media = await this.mediaRepository.findById(mediaId);
@@ -338,25 +339,15 @@ export class ProductService {
       throw new NotFoundError(`Media with id ${mediaId} not found`);
     }
 
-    console.log('🔍 Media object:', JSON.stringify(media, null, 2));
-    console.log('🔍 file_url:', media.file_url);
-    console.log('🔍 file_url type:', typeof media.file_url);
-    console.log('🔍 file_url truthy:', !!media.file_url);
-
-    // Delete file from Supabase Storage
+    // Delete file from R2
     if (media.file_url) {
       try {
-        // Remove leading slash if present to get clean path
-        const cleanPath = media.file_url.startsWith('/') 
-          ? media.file_url.slice(1) 
-          : media.file_url;
-        
-        console.log(`Deleting file from Supabase: ${cleanPath}`);
-        const { error } = await deleteFile("content", [cleanPath]);
-        if (error) {
-          console.error("Error deleting file from storage:", error);
-        } else {
-          console.log(`File deleted successfully: ${cleanPath}`);
+        const key = extractObjectKeyFromMediaUrl(media.file_url);
+        if (key) {
+          const { error } = await deleteFile("", [key]);
+          if (error) {
+            console.error("Error deleting file from storage:", error);
+          }
         }
       } catch (error) {
         console.error("Failed to delete file:", error);

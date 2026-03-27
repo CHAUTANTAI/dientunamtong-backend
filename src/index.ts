@@ -58,6 +58,16 @@ class Server {
 
       // Start server
       this.app.listen(ENV.PORT, () => {
+        const r2Ready =
+          (ENV.R2_ENDPOINT || ENV.R2_ACCOUNT_ID) &&
+          ENV.R2_ACCESS_KEY_ID &&
+          ENV.R2_SECRET_ACCESS_KEY &&
+          ENV.R2_BUCKET_NAME;
+        if (!r2Ready) {
+          console.warn(
+            "\n⚠️  R2 env missing: set R2_ACCOUNT_ID (or R2_ENDPOINT), R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME in backend/.env — storage proxy and uploads will fail until then.\n"
+          );
+        }
         console.log(`
 ╔════════════════════════════════════════════════╗
 ║                                                ║

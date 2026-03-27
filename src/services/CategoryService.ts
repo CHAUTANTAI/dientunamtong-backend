@@ -2,7 +2,8 @@ import { CategoryRepository } from "@repositories/CategoryRepository";
 import { Category } from "@entities/Category";
 import { CreateCategoryDto, UpdateCategoryDto } from "@/types/dtos";
 import { NotFoundError, ValidationError } from "@/types/responses";
-import { deleteFile } from "@/config/supabase";
+import { deleteFile } from "@/config/r2";
+import { extractObjectKeyFromMediaUrl } from "@/utils/storagePath";
 
 export class CategoryService {
   private categoryRepository: CategoryRepository;
@@ -199,19 +200,14 @@ export class CategoryService {
       console.log(`  - ${cat.name} (level: ${cat.level}, id: ${cat.id})`)
     );
 
-    // Delete images from Supabase Storage
+    // Delete images from object storage (R2)
     const imagePaths: string[] = [];
     for (const cat of allCategoriesToDelete) {
       if (cat.media?.file_url) {
-        try {
-          const url = new URL(cat.media.file_url);
-          const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)/);
-          if (pathMatch && pathMatch[1]) {
-            imagePaths.push(pathMatch[1]);
-            console.log(`  + Image to delete: ${pathMatch[1]}`);
-          }
-        } catch (error) {
-          console.error(`Failed to parse URL for category ${cat.id}:`, cat.media.file_url);
+        const key = extractObjectKeyFromMediaUrl(cat.media.file_url);
+        if (key) {
+          imagePaths.push(key);
+          console.log(`  + Image to delete: ${key}`);
         }
       }
     }
@@ -220,7 +216,7 @@ export class CategoryService {
     if (imagePaths.length > 0) {
       console.log(`[hardDeleteCategory] Deleting ${imagePaths.length} images from storage...`);
       try {
-        const { error } = await deleteFile("media", imagePaths);
+        const { error } = await deleteFile("", imagePaths);
         if (error) {
           console.error("Error deleting images from storage:", error);
         } else {

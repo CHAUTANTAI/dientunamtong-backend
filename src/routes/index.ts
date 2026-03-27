@@ -9,7 +9,9 @@ import publicCategoryRoutes from "./publicCategoryRoutes";
 import publicProductRoutes from "./publicProductRoutes";
 import publicMediaRoutes from "./publicMediaRoutes";
 import publicSystemInfoRoutes from "./publicSystemInfoRoutes";
+import publicStorageProxyRoutes from "./publicStorageProxyRoutes";
 import pageSectionRoutes from "./pageSection.routes";
+import storageRoutes from "./storage.routes";
 
 const router = Router();
 
@@ -31,6 +33,7 @@ router.use("/public/category", publicCategoryRoutes);
 router.use("/public/product", publicProductRoutes);
 router.use("/public/media", publicMediaRoutes);
 router.use("/public/system-info", publicSystemInfoRoutes);
+router.use("/public/storage", publicStorageProxyRoutes);
 router.use(pageSectionRoutes); // Handles both /public and /admin routes
 
 // Admin routes
@@ -43,5 +46,6 @@ router.use("/admin/category", categoryAdminRouter);
 router.use("/admin/contact", contactAdminRouter);
 router.use("/admin/profile", profileAdminRouter);
 router.use("/admin/media", mediaRoutes);
+router.use("/admin/storage", storageRoutes);
 
 export default router;
