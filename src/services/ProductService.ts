@@ -164,19 +164,31 @@ export class ProductService {
 
     // Delete all media files using removeAllProductMedia
     // This handles both database records and object storage (R2)
-    console.log(`Starting to delete all media for product ${id}...`);
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log(`Starting to delete all media for product ${id}...`);
+    }
     try {
       await this.removeAllProductMedia(id);
-      console.log(`✅ Successfully deleted all media for product ${id}`);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log(`✅ Successfully deleted all media for product ${id}`);
+      }
     } catch (error) {
       console.error(`❌ Failed to delete media for product ${id}:`, error);
       // Continue with product deletion even if media deletion fails
     }
 
     // Delete product (CASCADE will handle junction tables)
-    console.log(`Deleting product ${id} from database...`);
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log(`Deleting product ${id} from database...`);
+    }
     await this.productRepository.delete(id);
-    console.log(`✅ Product ${id} deleted successfully`);
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log(`✅ Product ${id} deleted successfully`);
+    }
   }
 
   async updateProductCategories(
@@ -315,13 +327,19 @@ export class ProductService {
       return; // Nothing to delete
     }
 
-    console.log(`Removing ${media.length} media files for product ${productId}`);
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log(`Removing ${media.length} media files for product ${productId}`);
+    }
 
     // Delete all media files
     for (const mediaFile of media) {
       try {
         await this.removeProductMedia(mediaFile.id);
-        console.log(`Deleted media: ${mediaFile.id}`);
+        if (process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.log(`Deleted media: ${mediaFile.id}`);
+        }
       } catch (error) {
         console.error(`Failed to delete media ${mediaFile.id}:`, error);
         // Continue deleting other files even if one fails

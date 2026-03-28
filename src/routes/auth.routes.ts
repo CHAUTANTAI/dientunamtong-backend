@@ -3,8 +3,13 @@ import { AuthController } from "@controllers/AuthController";
 import { validate, authenticate } from "@middlewares/index";
 import { loginValidator } from "@/utils/validators";
 
+import cookieParser from "cookie-parser";
+
 const router = Router();
 const authController = new AuthController();
+
+// parse cookies for refresh endpoint
+router.use(cookieParser());
 
 /**
  * @route   POST /api/auth/login
@@ -12,6 +17,13 @@ const authController = new AuthController();
  * @access  Public
  */
 router.post("/login", validate(loginValidator), authController.login);
+
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh access token using HttpOnly refresh cookie
+ * @access  Public (cookie-based)
+ */
+router.post("/refresh", authController.refresh);
 
 /**
  * @route   POST /api/auth/logout

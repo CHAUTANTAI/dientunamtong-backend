@@ -147,11 +147,13 @@ export interface UpdatePasswordDto {
 export interface LoginDto {
   username: string;
   password: string;
+  deviceName?: string;
 }
 
 export interface AuthResponseDto {
   success: boolean;
   token?: string;
+  refreshToken?: string;
   user?: {
     id: string;
     username: string;

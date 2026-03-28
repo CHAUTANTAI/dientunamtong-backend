@@ -162,8 +162,12 @@ export class CategoryService {
       );
     }
 
-    console.log(`[hardDeleteCategory] Deleting category: ${category.name} (${id})`);
-    console.log(`[hardDeleteCategory] Has children: ${hasChildren}, Cascade: ${cascade}`);
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log(`[hardDeleteCategory] Deleting category: ${category.name} (${id})`);
+      // eslint-disable-next-line no-console
+      console.log(`[hardDeleteCategory] Has children: ${hasChildren}, Cascade: ${cascade}`);
+    }
 
     // Collect all categories to delete (recursive)
     const getAllDescendantIds = async (parentId: string): Promise<string[]> => {
@@ -183,7 +187,10 @@ export class CategoryService {
     
     if (cascade && hasChildren) {
       const descendantIds = await getAllDescendantIds(id);
-      console.log(`[hardDeleteCategory] Found ${descendantIds.length} descendant IDs:`, descendantIds);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log(`[hardDeleteCategory] Found ${descendantIds.length} descendant IDs:`, descendantIds);
+      }
       
       // Load all descendants with media relation
       if (descendantIds.length > 0) {
@@ -195,10 +202,14 @@ export class CategoryService {
       }
     }
 
-    console.log(`[hardDeleteCategory] Total categories to delete: ${allCategoriesToDelete.length}`);
-    allCategoriesToDelete.forEach(cat => 
-      console.log(`  - ${cat.name} (level: ${cat.level}, id: ${cat.id})`)
-    );
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log(`[hardDeleteCategory] Total categories to delete: ${allCategoriesToDelete.length}`);
+      allCategoriesToDelete.forEach(cat =>
+        // eslint-disable-next-line no-console
+        console.log(`  - ${cat.name} (level: ${cat.level}, id: ${cat.id})`)
+      );
+    }
 
     // Delete images from object storage (R2)
     const imagePaths: string[] = [];
@@ -207,20 +218,29 @@ export class CategoryService {
         const key = extractObjectKeyFromMediaUrl(cat.media.file_url);
         if (key) {
           imagePaths.push(key);
-          console.log(`  + Image to delete: ${key}`);
+          if (process.env.NODE_ENV !== 'production') {
+            // eslint-disable-next-line no-console
+            console.log(`  + Image to delete: ${key}`);
+          }
         }
       }
     }
 
     // Delete images from storage
     if (imagePaths.length > 0) {
-      console.log(`[hardDeleteCategory] Deleting ${imagePaths.length} images from storage...`);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log(`[hardDeleteCategory] Deleting ${imagePaths.length} images from storage...`);
+      }
       try {
         const { error } = await deleteFile("", imagePaths);
         if (error) {
           console.error("Error deleting images from storage:", error);
         } else {
-          console.log("✓ Images deleted from storage successfully");
+          if (process.env.NODE_ENV !== 'production') {
+            // eslint-disable-next-line no-console
+            console.log("✓ Images deleted from storage successfully");
+          }
         }
       } catch (error) {
         console.error("Failed to delete images from storage:", error);
@@ -229,7 +249,10 @@ export class CategoryService {
 
     // Delete product-category associations BEFORE deleting categories
     const categoryIds = allCategoriesToDelete.map(c => c.id);
-    console.log(`[hardDeleteCategory] Deleting product-category associations for ${categoryIds.length} categories...`);
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log(`[hardDeleteCategory] Deleting product-category associations for ${categoryIds.length} categories...`);
+    }
     
     try {
       const { AppDataSource } = await import("@/config/database");
@@ -238,7 +261,10 @@ export class CategoryService {
         .from("product_category")
         .where("category_id IN (:...ids)", { ids: categoryIds })
         .execute();
-      console.log("✓ Product-category associations deleted successfully");
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log("✓ Product-category associations deleted successfully");
+      }
     } catch (error) {
       console.error("Failed to delete product-category associations:", error);
       throw new Error("Failed to delete category associations with products");
@@ -249,23 +275,42 @@ export class CategoryService {
       const sortedToDelete = allCategoriesToDelete
         .sort((a, b) => b.level - a.level); // Highest level (deepest) first
       
-      console.log('[hardDeleteCategory] Delete order (by level):');
-      sortedToDelete.forEach((cat, idx) => 
-        console.log(`  ${idx + 1}. ${cat.name} (level: ${cat.level}, id: ${cat.id})`)
-      );
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log('[hardDeleteCategory] Delete order (by level):');
+        sortedToDelete.forEach((cat, idx) =>
+          // eslint-disable-next-line no-console
+          console.log(`  ${idx + 1}. ${cat.name} (level: ${cat.level}, id: ${cat.id})`)
+        );
+      }
       
       for (const cat of sortedToDelete) {
-        console.log(`[hardDeleteCategory] Deleting: ${cat.name} (${cat.id})...`);
+        if (process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.log(`[hardDeleteCategory] Deleting: ${cat.name} (${cat.id})...`);
+        }
         await this.categoryRepository.delete(cat.id);
-        console.log(`  ✓ Deleted: ${cat.name}`);
+        if (process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.log(`  ✓ Deleted: ${cat.name}`);
+        }
       }
     } else {
-      console.log(`[hardDeleteCategory] Deleting single category: ${category.name} (${id})`);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log(`[hardDeleteCategory] Deleting single category: ${category.name} (${id})`);
+      }
       await this.categoryRepository.delete(id);
-      console.log(`  ✓ Deleted: ${category.name}`);
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log(`  ✓ Deleted: ${category.name}`);
+      }
     }
     
-    console.log('[hardDeleteCategory] ✓ All deletions completed successfully');
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.log('[hardDeleteCategory] ✓ All deletions completed successfully');
+    }
   }
 
   // Tree-specific operations

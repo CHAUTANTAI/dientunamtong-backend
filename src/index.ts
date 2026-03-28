@@ -20,13 +20,23 @@ class Server {
     this.app.use(express.urlencoded({ extended: true }));
 
     // CORS middleware
-    this.app.use(cors());
+    // Allow credentials and restrict origin to frontend app in development/production.
+    const frontendOrigin = ENV.APP_PUBLIC_URL || 'http://localhost:3000';
+    this.app.use(
+      cors({
+        origin: frontendOrigin,
+        credentials: true,
+      })
+    );
 
-    // Response logging middleware
+    // Response logging middleware (development only)
     this.app.use((req, res, next) => {
       const originalSend = res.send;
       res.send = function (data) {
-        console.log(`✅ Response sent: ${req.method} ${req.path} - Status: ${res.statusCode}`);
+        if (ENV.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.log(`✅ Response sent: ${req.method} ${req.path} - Status: ${res.statusCode}`);
+        }
         return originalSend.call(this, data);
       };
       next();
