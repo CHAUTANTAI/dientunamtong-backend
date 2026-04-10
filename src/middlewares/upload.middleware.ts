@@ -1,25 +1,16 @@
 import multer from "multer";
-import { Request } from "express";
 import { ValidationError } from "@/types/responses";
 import { ENV } from "@config/env";
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
 
-// File filter
-const fileFilter = (
-  req: Request,
-  file: Express.Multer.File,
-  callback: multer.FileFilterCallback
-) => {
-  // Accept images only
+// File filter (typed as multer option so it matches nested @types/express under @types/multer)
+const fileFilter: NonNullable<multer.Options["fileFilter"]> = (req, file, callback) => {
   if (file.mimetype.startsWith("image/")) {
     callback(null, true);
   } else {
-    callback(
-      new ValidationError("Only image files are allowed") as any,
-      false
-    );
+    callback(new ValidationError("Only image files are allowed"));
   }
 };
 

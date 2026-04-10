@@ -24,6 +24,11 @@
   ],
   "author": "",
   "license": "ISC",
+  "overrides": {
+    "@types/multer": {
+      "@types/express": "4.17.21"
+    }
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1018.0",
     "bcrypt": "^5.1.1",

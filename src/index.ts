@@ -2,7 +2,7 @@ import "reflect-metadata";
 import express, { Application } from "express";
 import cors from "cors";
 import { initializeDatabase } from "@config/database";
-import { ENV } from "@config/env";
+import { ENV, getCorsAllowedOrigins } from "@config/env";
 import routes from "./routes";
 import { errorHandler, notFoundHandler } from "@middlewares/index";
 
@@ -19,12 +19,13 @@ class Server {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
 
-    // CORS middleware
-    // Allow credentials and restrict origin to frontend app in development/production.
-    const frontendOrigin = ENV.APP_PUBLIC_URL || 'http://localhost:3000';
+    // CORS_ORIGIN (comma-separated) overrides; else same as before: APP_PUBLIC_URL or http://localhost:3000
+    const corsAllowed = getCorsAllowedOrigins();
+    const corsOrigin: string | string[] =
+      corsAllowed.length > 1 ? corsAllowed : (corsAllowed[0] ?? "http://localhost:3000");
     this.app.use(
       cors({
-        origin: frontendOrigin,
+        origin: corsOrigin,
         credentials: true,
       })
     );

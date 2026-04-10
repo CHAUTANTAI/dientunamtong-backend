@@ -56,6 +56,11 @@ export const ENV = {
   R2_PUBLIC_URL: t(process.env.R2_PUBLIC_URL),
   /** Optional public origin of this API (e.g. https://api.example.com). Used to build storage proxy URL when R2_PUBLIC_URL is unset. */
   APP_PUBLIC_URL: t(process.env.APP_PUBLIC_URL),
+  /**
+   * Comma-separated browser origins allowed for CORS (e.g. https://app.vercel.app).
+   * Prefer this when APP_PUBLIC_URL is the API URL on Render — otherwise the SPA origin is blocked.
+   */
+  CORS_ORIGIN: t(process.env.CORS_ORIGIN),
 
   // Upload
   STORAGE_BUCKET: process.env.STORAGE_BUCKET || "content",
@@ -66,6 +71,20 @@ export const ENV = {
  * Direct R2 public URL if set; otherwise same-origin proxy: `{origin}/api/public/storage`
  * so the browser always gets an absolute http(s) URL (works without Cloudflare public bucket URL).
  */
+/**
+ * Origins allowed for credentialed CORS (browser).
+ * Matches legacy `APP_PUBLIC_URL || 'http://localhost:3000'` when CORS_ORIGIN is unset (including production).
+ */
+export function getCorsAllowedOrigins(): string[] {
+  const explicit = ENV.CORS_ORIGIN
+    ? ENV.CORS_ORIGIN.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+  if (explicit.length > 0) return explicit;
+  const legacy = ENV.APP_PUBLIC_URL;
+  if (legacy) return [legacy];
+  return ["http://localhost:3000"];
+}
+
 export function getStoragePublicBaseUrl(): string {
   const direct = (ENV.R2_PUBLIC_URL || "").trim().replace(/\/+$/, "");
   if (direct) return direct;
