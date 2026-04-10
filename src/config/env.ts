@@ -73,7 +73,8 @@ export const ENV = {
  */
 /**
  * Origins allowed for credentialed CORS (browser).
- * Matches legacy `APP_PUBLIC_URL || 'http://localhost:3000'` when CORS_ORIGIN is unset (including production).
+ * Production: no default — set CORS_ORIGIN and/or APP_PUBLIC_URL or cross-site browsers get no valid ACAO.
+ * Development: defaults to http://localhost:3000.
  */
 export function getCorsAllowedOrigins(): string[] {
   const explicit = ENV.CORS_ORIGIN
@@ -82,7 +83,8 @@ export function getCorsAllowedOrigins(): string[] {
   if (explicit.length > 0) return explicit;
   const legacy = ENV.APP_PUBLIC_URL;
   if (legacy) return [legacy];
-  return ["http://localhost:3000"];
+  if (ENV.NODE_ENV !== "production") return ["http://localhost:3000"];
+  return [];
 }
 
 export function getStoragePublicBaseUrl(): string {

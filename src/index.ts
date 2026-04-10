@@ -19,10 +19,21 @@ class Server {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
 
-    // CORS_ORIGIN (comma-separated) overrides; else same as before: APP_PUBLIC_URL or http://localhost:3000
     const corsAllowed = getCorsAllowedOrigins();
-    const corsOrigin: string | string[] =
-      corsAllowed.length > 1 ? corsAllowed : (corsAllowed[0] ?? "http://localhost:3000");
+    const corsOrigin: boolean | string | string[] =
+      corsAllowed.length > 1
+        ? corsAllowed
+        : corsAllowed.length === 1
+          ? corsAllowed[0]!
+          : ENV.NODE_ENV === "production"
+            ? false
+            : "http://localhost:3000";
+    if (corsOrigin === false) {
+      console.warn(
+        "\n⚠️  CORS: set CORS_ORIGIN to your SPA origin (e.g. https://….vercel.app). " +
+          "Without it, browsers on another domain cannot call this API.\n"
+      );
+    }
     this.app.use(
       cors({
         origin: corsOrigin,
